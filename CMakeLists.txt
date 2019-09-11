@@ -2,4 +2,4 @@ cmake_minimum_required(VERSION 2.8.12)
 project(cmake_example)
 
 add_subdirectory(pybind11)
-pybind11_add_module(vecpsf vecpsf.cpp)
+pybind11_add_module(vectorialpsf src/pybind.cpp)

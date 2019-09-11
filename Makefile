@@ -26,8 +26,8 @@ all: psf
 psf: main.cpp
 	$(CXX) -o psf $^ $(LDFLAGS) $(CFLAGS) $(LIBS)
 
-vecpsf: vecpsf.cpp
-  c++ -O3 -Wall -shared -std=c++11 -fPIC -Wl,-undefined,dynamic_lookup `python3 -m pybind11 --includes` $^ -o vecpsf`python3-config --extension-suffix`
+vectorialpsf: vectorialpsf.cpp
+  c++ -O3 -Wall -shared -std=c++11 -fPIC -Wl,-undefined,dynamic_lookup `python3 -m pybind11 --includes` $^ -o vectorialpsf`python3-config --extension-suffix`
 
 clean:
 	$(RM) *.o *.exe *~ psf *.so

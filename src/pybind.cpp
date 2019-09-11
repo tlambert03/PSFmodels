@@ -71,7 +71,7 @@ make_centered_psf(int nx = 101, int nz = 31, double range = 6,
                   mag, na, pixel, sf, mode);
 }
 
-PYBIND11_MODULE(vecpsf, m) {
+PYBIND11_MODULE(vectorialpsf, m) {
   m.doc() = "Vectorial PSF generation"; // optional module docstring
 
   m.def("make_psf", &make_psf, R"pbdoc(

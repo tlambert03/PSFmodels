@@ -7,8 +7,10 @@ environment:
   matrix:
   - PYTHON: 27
   - PYTHON: 36
+  - PYTHON: 37
   - CONDA: 27
   - CONDA: 36
+  - CONDA: 37
 install:
 - ps: |
     git submodule update -q --init --recursive
@@ -29,10 +31,10 @@ build_script:
 - ps: |
     if ($env:PYTHON) {
       python setup.py sdist
-      pip install --verbose dist\cmake_example-0.0.1.tar.gz
+      pip install --verbose dist\vectorialpsf-0.1.0.tar.gz
     } else {
       conda build conda.recipe
-      conda install --use-local cmake_example
+      conda install --use-local vectorialpsf
     }
 test_script:
 - ps: python tests\test.py
