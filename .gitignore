@@ -6,3 +6,4 @@ _generate/
 *.py[cod]
 *.egg-info
 *.vscode
+*.DS_Store
