@@ -1,19 +1,20 @@
 language: cpp
-dist: trusty
+dist: xenial
+compiler: gcc
 matrix:
   include:
   # - os: linux
   #   env: PYTHON=2.7
-  # - os: linux
-  #   env: PYTHON=3.6
+  - os: linux
+    env: PYTHON=3.6
   # - os: linux
   #   env: PYTHON=3.7
   # - os: linux
   #   env: CONDA=2.7
   # - os: linux
   #   env: CONDA=3.6
-  - os: linux
-    env: CONDA=3.7
+  # - os: linux
+  #  env: CONDA=3.7
   # - os: osx
   #   env: PYTHON=2.7
   # - os: osx
@@ -28,7 +29,7 @@ matrix:
   #   env: CONDA=3.7
 before_install:
 - |
-  if [ "$TRAVIS_OS_NAME" = "linux" ]; then export CXX=g++-4.8 CC=gcc-4.8; fi
+  # if [ "$TRAVIS_OS_NAME" = "linux" ]; then export CXX=g++-4.8 CC=gcc-4.8; fi
   if [ -n "$PYTHON" ]; then
     if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "${PYTHON:0:1}" = "3" ]; then
       brew update; brew install python3;
@@ -60,11 +61,11 @@ install:
 script:
 - echo "skipping tests"
 
-deploy:
-  provider: pypi
-  distributions: sdist bdist_wheel
-  user: talley
-  password:
-    secure: HaLDAjE04wiLj4lR1UrHBikIGUQUgjvj+ASUIUuhAHf0G5R2+VDAgvhINMG4TXB98XZ3M5+qJbE/wjQOqwJbx386jC2hRL6+ZxYkPwUVuDkqn/gyeauM8RKCVtfJ1BX6LfiPsmT/l+9P7zbYvNK8xxLlTbsZWFU/C++BGaW+esZ9IOjNY1Zo5RNZo7rYwg8UcGzJlZPIC11k2BN/PSRVOayjMz4RluK8QzALJjUn/DuZs4CDymLqXENKBnPc0mlSktXFgUaOl6h6clr2ktBzRx6DKLWV/3VhPZDFboGaobRydhNKpLTGeJ12tA/yc/bGO+WTSM4hQY9ikQvNGpkLJPLVP09N5W5c8BmyJRgUaIHX5DWecbCBR1kiNiN1heQHg0YAFDCZ4f0BOnKWkVJTDsTIM4OAGszhj6JCTCJe5MgPMGc3w4TafB9t8gzNEtAlIzTMFR5dm307JGVmpd77u78lzFbauIw26qwZxcD+COZtmKFmWWYTOuxUrknBLsjCQvsW727iF0dCKw+YfZB1E4tDkUjL0y8tuC6jvS0wa9OeDkdZS2fL+Y0WlGn3HB0MAeV9oQkZ7yWOOxGG9pvPFHgkgRYQUm9O9ftJRPFKuvwtd31QKMW6me1pZIjvAr7AMNzIJ+TX+VFmJifKE60BWaYY6rMxdYDOl0vXTBBE7p4=
-  on:
-    tags: true
+# deploy:
+#   provider: pypi
+#   distributions: sdist bdist_wheel
+#   user: talley
+#   password:
+#     secure: HaLDAjE04wiLj4lR1UrHBikIGUQUgjvj+ASUIUuhAHf0G5R2+VDAgvhINMG4TXB98XZ3M5+qJbE/wjQOqwJbx386jC2hRL6+ZxYkPwUVuDkqn/gyeauM8RKCVtfJ1BX6LfiPsmT/l+9P7zbYvNK8xxLlTbsZWFU/C++BGaW+esZ9IOjNY1Zo5RNZo7rYwg8UcGzJlZPIC11k2BN/PSRVOayjMz4RluK8QzALJjUn/DuZs4CDymLqXENKBnPc0mlSktXFgUaOl6h6clr2ktBzRx6DKLWV/3VhPZDFboGaobRydhNKpLTGeJ12tA/yc/bGO+WTSM4hQY9ikQvNGpkLJPLVP09N5W5c8BmyJRgUaIHX5DWecbCBR1kiNiN1heQHg0YAFDCZ4f0BOnKWkVJTDsTIM4OAGszhj6JCTCJe5MgPMGc3w4TafB9t8gzNEtAlIzTMFR5dm307JGVmpd77u78lzFbauIw26qwZxcD+COZtmKFmWWYTOuxUrknBLsjCQvsW727iF0dCKw+YfZB1E4tDkUjL0y8tuC6jvS0wa9OeDkdZS2fL+Y0WlGn3HB0MAeV9oQkZ7yWOOxGG9pvPFHgkgRYQUm9O9ftJRPFKuvwtd31QKMW6me1pZIjvAr7AMNzIJ+TX+VFmJifKE60BWaYY6rMxdYDOl0vXTBBE7p4=
+#   on:
+#     tags: true
