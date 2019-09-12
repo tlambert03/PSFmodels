@@ -1,12 +1,21 @@
 import os
 import re
 import sys
+import glob
+import shutil
 import platform
 import subprocess
 
-from setuptools import setup, Extension
+from setuptools import setup, Extension, Command
 from setuptools.command.build_ext import build_ext
 from distutils.version import LooseVersion
+
+# read the contents of your README file
+from os import path
+
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
+    long_description = f.read()
 
 
 class CMakeExtension(Extension):
@@ -70,13 +79,64 @@ class CMakeBuild(build_ext):
         )
 
 
+class CleanCommand(Command):
+    """Custom clean command to tidy up the project root."""
+
+    CLEAN_FILES = ".eggs ./*.so ./build ./dist ./*.pyc ./*.tgz ./*.egg-info".split(" ")
+
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        here = os.path.abspath(os.path.curdir)
+        for path_spec in self.CLEAN_FILES:
+            # Make paths absolute and relative to this path
+            abs_paths = glob.glob(os.path.normpath(os.path.join(here, path_spec)))
+            for path in [str(p) for p in abs_paths]:
+                if not path.startswith(here):
+                    # Die if path in CLEAN_FILES is absolute + outside this directory
+                    raise ValueError("%s is not a path inside %s" % (path, here))
+                print("removing %s" % os.path.relpath(path))
+                if os.path.isdir(path):
+                    shutil.rmtree(path)
+                else:
+                    os.remove(path)
+
+
+class DeployCommand(Command):
+    user_options = []
+    repository_url = "https://test.pypi.org/legacy/"
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        self.run_command("test")
+        self.run_command("bdist_wheel")
+        subprocess.check_call(
+            ["twine", "upload", "--repository-url", self.repository_url, "dist/*"]
+        )
+        self.run_command("clean")
+
+
 setup(
     name="vectorialpsf",
-    version="0.1.0",
-    author="Francois Aguet",
-    description="Vectorial PSF generation",
-    long_description="",
+    version="0.1.1",
+    author="Talley Lambert",
+    author_email="talley.lambert@gmail.com",
+    url="https://github.com/tlambert03/vectorialpsf",
+    description="Vectorial microscope PSF generation, C code written by Francois Aguet",
+    long_description=long_description,
     ext_modules=[CMakeExtension("vectorialpsf")],
-    cmdclass=dict(build_ext=CMakeBuild),
+    cmdclass=dict(build_ext=CMakeBuild, clean=CleanCommand, deploy=DeployCommand),
     zip_safe=False,
+    install_requires=["numpy"],
 )
