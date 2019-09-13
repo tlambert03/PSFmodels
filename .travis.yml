@@ -1,76 +1,44 @@
 language: cpp
 dist: xenial
-compiler: gcc
 matrix:
   include:
-  # - os: linux
-  #   env: PYTHON=2.7
-  - os: linux
-    env: PYTHON=3.6
-  # - os: linux
-  #   env: PYTHON=3.7
-  # - os: linux
-  #   env: CONDA=2.7
-  # - os: linux
-  #   env: CONDA=3.6
-  # - os: linux
-  #  env: CONDA=3.7
-  # - os: osx
-  #   env: PYTHON=2.7
-  # - os: osx
-  #   env: PYTHON=3.6
-  # - os: osx
-  #   env: PYTHON=3.7
-  # - os: osx
-  #   env: CONDA=2.7
-  # - os: osx
-  #   env: CONDA=3.6
-  # - os: osx
-  #   env: CONDA=3.7
+    - os: linux
+      env: PYTHON=2.7
+    - os: linux
+      env: PYTHON=3.5
+    - os: linux
+      env: PYTHON=3.6
+    - os: linux
+      env: PYTHON=3.7
+    - os: osx
+      env: PYTHON=2.7
+    - os: osx
+      env: PYTHON=3.5
+    - os: osx
+      env: PYTHON=3.6
+    - os: osx
+      env: PYTHON=3.7
 before_install:
-- pip install --user --upgrade pip virtualenv
-- virtualenv -p python$PYTHON venv
-- echo hi
-- source venv/bin/activate
-- echo low
-# - |
-  # if [ "$TRAVIS_OS_NAME" = "linux" ]; then export CXX=g++-4.8 CC=gcc-4.8; fi
-  # if [ -n "$PYTHON" ]; then
-  #   if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "${PYTHON:0:1}" = "3" ]; then
-  #     brew update; brew install python3;
-  #   fi
-  #   pip install --user --upgrade pip virtualenv
-  #   virtualenv -p python$PYTHON venv
-  #   source venv/bin/activate
-  # elif [ -n "$CONDA" ]; then
-  #   if [ "$TRAVIS_OS_NAME" = "linux" ]; then OS=Linux-x86_64; else OS=MacOSX-x86_64; fi
-  #   wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda${CONDA:0:1}-latest-$OS.sh
-  #   bash miniconda.sh -b -p $HOME/miniconda
-  #   export PATH="$HOME/miniconda/bin:$PATH"
-  #   conda config --set always_yes yes --set changeps1 no
-  #   conda config --add channels conda-forge
-  #   conda update -q conda
-  #   conda install -q conda-build
-  #   conda create -q -n test-environment python=$CONDA
-  #   source activate test-environment
-  # fi
-install:
-- |
-  if [ -n "$PYTHON" ]; then
-    python setup.py sdist
-    pip install --verbose dist/*.tar.gz
-  elif [ -n "$CONDA" ]; then
-    conda build conda.recipe
-    conda install --use-local vectorialpsf
-  fi
-script:
-- echo "skipping tests"
+  - gcc --version
+  - cmake --version
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then OS=Linux-x86_64; else OS=MacOSX-x86_64; fi
+  - wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda${CONDA:0:1}-latest-$OS.sh
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda config --add channels conda-forge
+  - conda update -q conda
+  - conda create -q -n env python=$PYTHON numpy
+  - source activate env
 
-# deploy:
-#   provider: pypi
-#   distributions: sdist bdist_wheel
-#   user: talley
-#   password:
-#     secure: HaLDAjE04wiLj4lR1UrHBikIGUQUgjvj+ASUIUuhAHf0G5R2+VDAgvhINMG4TXB98XZ3M5+qJbE/wjQOqwJbx386jC2hRL6+ZxYkPwUVuDkqn/gyeauM8RKCVtfJ1BX6LfiPsmT/l+9P7zbYvNK8xxLlTbsZWFU/C++BGaW+esZ9IOjNY1Zo5RNZo7rYwg8UcGzJlZPIC11k2BN/PSRVOayjMz4RluK8QzALJjUn/DuZs4CDymLqXENKBnPc0mlSktXFgUaOl6h6clr2ktBzRx6DKLWV/3VhPZDFboGaobRydhNKpLTGeJ12tA/yc/bGO+WTSM4hQY9ikQvNGpkLJPLVP09N5W5c8BmyJRgUaIHX5DWecbCBR1kiNiN1heQHg0YAFDCZ4f0BOnKWkVJTDsTIM4OAGszhj6JCTCJe5MgPMGc3w4TafB9t8gzNEtAlIzTMFR5dm307JGVmpd77u78lzFbauIw26qwZxcD+COZtmKFmWWYTOuxUrknBLsjCQvsW727iF0dCKw+YfZB1E4tDkUjL0y8tuC6jvS0wa9OeDkdZS2fL+Y0WlGn3HB0MAeV9oQkZ7yWOOxGG9pvPFHgkgRYQUm9O9ftJRPFKuvwtd31QKMW6me1pZIjvAr7AMNzIJ+TX+VFmJifKE60BWaYY6rMxdYDOl0vXTBBE7p4=
-#   on:
-#     tags: true
+script:
+- python setup.py test
+
+deploy:
+  provider: pypi
+  distributions: bdist_wheel
+  server: https://test.pypi.org/legacy/  # Remove for deployment to official PyPi repo
+  user: talley
+  password:
+    secure: TcBGZF0ySE6FszEkdOOIQvXji04qX/g5I0xlGjKIFfRGclTphFs3lec49fMmMjetswOKTeJwfg4eY0lJztcooJ25mqe2CTwuViy/H/6FeMZPN7kPoT4qQHWVLw0Q4XYg66muMl443CL0QZz8c5vlHWM87vvxFFcUEJpCJniVXzQpLz/yr0WNVuMDLV8aIULB4ksN7C6CYrY+o6xw9z07XGvNh92rWCSppSyGeStoJR9U1jNac4tXyXJEe7TLiD/dBHljQGZyEf7GzV2EoO6ggsVOMtqH4p2udx3nFBxFqjjPI/iVKEZUur1nvPK20jZ3s0RmtvtowTGzd6ZTTPO28+TQSLYiLgP9zRnUc8mE94D3iu3McQxvjJA/tKaoe+phA01SH1b2ahY6kbAs++7NFcV8L0Tc9oDyE8TdLcxXUPu/BCcZoZF+X1QHlVgulwUf5eFRONwxxsj0B/5L0rRhy+zAxuNqKy18PmWyhcEqkGZPN3WokeTMK1B4NdGwrUbkXP7+Yhwy9hPdRGFihbCoPDwwAfsVnxyXBo1swh9jlDPmoeLLOdwC6zpA+BXIVu2Dewx+MrupqUijDh5SU/SvIwNkGlj+7CkP48V1u8XjfgGM8Nfhc4U0sWOp9SfQ7dS9mxUg2i2eIQzKqxQua4NqZdlLA/eak0xnSbOgaKfXwOI=
