@@ -48,11 +48,11 @@ class CMakeBuild(build_ext):
 
     def build_extension(self, ext):
 
+        extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
         # dealing with crappy Dropbox
         if ("(") in os.path.abspath(self.build_temp):
             self.build_temp = BUILD_TEMP
-        extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
-        extdir = os.path.join(self.build_temp, os.path.basename(extdir))
+            extdir = os.path.join(self.build_temp, os.path.basename(extdir))
 
         cmake_args = [
             "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=" + extdir,
