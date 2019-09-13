@@ -133,7 +133,7 @@ setup(
     author="Talley Lambert",
     author_email="talley.lambert@gmail.com",
     url="https://github.com/tlambert03/vectorialpsf",
-    description="Vectorial microscope PSF generation, written by François Aguet",
+    description="Vectorial microscope PSF generation, written by Francois Aguet",
     long_description=long_description,
     long_description_content_type="text/markdown",
     ext_modules=[CMakeExtension("vectorialpsf")],
