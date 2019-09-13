@@ -22,7 +22,7 @@ before_install:
   - gcc --version
   - cmake --version
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then OS=Linux-x86_64; else OS=MacOSX-x86_64; fi
-  - wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda${CONDA:0:1}-latest-$OS.sh
+  - wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda${PYTHON:0:1}-latest-$OS.sh
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
@@ -37,7 +37,7 @@ script:
 
 deploy:
   provider: pypi
-  distributions: bdist_wheel
+  distributions: sdist bdist_wheel
   server: https://test.pypi.org/legacy/  # Remove for deployment to official PyPi repo
   user: talley
   password:
