@@ -17,6 +17,8 @@ this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, "README.md")) as f:
     long_description = f.read()
 
+BUILD_TEMP = os.path.expanduser("~/Desktop/vecpsf_build")
+
 
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=""):
@@ -45,7 +47,13 @@ class CMakeBuild(build_ext):
             self.build_extension(ext)
 
     def build_extension(self, ext):
+
+        # dealing with crappy Dropbox
+        if ("(") in os.path.abspath(self.build_temp):
+            self.build_temp = BUILD_TEMP
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
+        extdir = os.path.join(self.build_temp, os.path.basename(extdir))
+
         cmake_args = [
             "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=" + extdir,
             "-DPYTHON_EXECUTABLE=" + sys.executable,
@@ -97,15 +105,19 @@ class CleanCommand(Command):
         for path_spec in self.CLEAN_FILES:
             # Make paths absolute and relative to this path
             abs_paths = glob.glob(os.path.normpath(os.path.join(here, path_spec)))
-            for path in [str(p) for p in abs_paths]:
-                if not path.startswith(here):
+            for _path in [str(p) for p in abs_paths]:
+                if not _path.startswith(here):
                     # Die if path in CLEAN_FILES is absolute + outside this directory
-                    raise ValueError("%s is not a path inside %s" % (path, here))
-                print("removing %s" % os.path.relpath(path))
-                if os.path.isdir(path):
-                    shutil.rmtree(path)
+                    raise ValueError("%s is not a path inside %s" % (_path, here))
+                print("removing %s" % os.path.relpath(_path))
+                if os.path.isdir(_path):
+                    shutil.rmtree(_path)
                 else:
-                    os.remove(path)
+                    os.remove(_path)
+
+        if os.path.exists(BUILD_TEMP):
+            print("removing %s" % BUILD_TEMP)
+            shutil.rmtree(BUILD_TEMP)
 
 
 class DeployCommand(Command):
