@@ -3,8 +3,6 @@ dist: xenial
 matrix:
   include:
     - os: linux
-      env: PYTHON=3.6
-    - os: linux
       env: PYTHON=3.7
     - os: osx
       env: PYTHON=2.7
