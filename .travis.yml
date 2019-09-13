@@ -2,42 +2,29 @@ language: cpp
 dist: xenial
 matrix:
   include:
-    - os: windows
+    - os: linux
       env: PYTHON=3.7
-    # - os: linux
-    #   env: PYTHON=3.7
-    # - os: osx
-    #   env: PYTHON=2.7
-    # - os: osx
-    #   env: PYTHON=3.5
-    # - os: osx
-    #   env: PYTHON=3.6
-    # - os: osx
-    #   env: PYTHON=3.7
+    - os: osx
+      env: PYTHON=2.7
+    - os: osx
+      env: PYTHON=3.5
+    - os: osx
+      env: PYTHON=3.6
+    - os: osx
+      env: PYTHON=3.7
 before_install:
-  - |
-    if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
-      MINICONDA_PATH=/c/tools/miniconda3/;
-      MINICONDA_PATH_WIN=`cygpath --windows $MINICONDA_PATH`;
-      MINICONDA_SUB_PATH=$MINICONDA_PATH/Scripts;
-      choco install openssl.light;
-      choco install miniconda3 --params="'/AddToPath:1 /D:$MINICONDA_PATH_WIN'";
-      export PATH="$MINICONDA_PATH:$MINICONDA_SUB_PATH:$PATH";
-      source $MINICONDA_PATH/etc/profile.d/conda.sh;
-      CALL $MINICONDA_PATH/Scripts/activate.bat
-    else
-      if [ "$TRAVIS_OS_NAME" = "linux" ]; then OS=Linux-x86_64; elif [ "$TRAVIS_OS_NAME" = "windows" ]; then OS=Windows; else OS=MacOSX-x86_64; fi
-      wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda${PYTHON:0:1}-latest-$OS.sh
-      bash miniconda.sh -b -p $HOME/miniconda
-      export PATH="$HOME/miniconda/bin:$PATH"
-    fi;
+  - gcc --version
   - cmake --version
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then OS=Linux-x86_64; else OS=MacOSX-x86_64; fi
+  - wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda${PYTHON:0:1}-latest-$OS.sh
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda config --add channels conda-forge
   - conda update -q conda
-  - conda create -n test-env python=$PYTHON
-  - source activate test-env
+  - conda create -q -n env python=$PYTHON numpy
+  - source activate env
 
 script:
   - python setup.py test
