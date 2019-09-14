@@ -12,5 +12,5 @@ class DeviceTest(unittest.TestCase):
         self.assertEqual(p.shape, (5, 31, 31))
 
     def test_make_centered_psf(self):
-        p = make_centered_psf(31)
+        p = make_centered_psf(nx=31, nz=5)
         self.assertEqual(p.shape, (5, 31, 31))
