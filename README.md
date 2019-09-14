@@ -6,13 +6,17 @@ Python bindings by Talley Lambert, 2019.
 
 The model is described in Auget et al 2009<sup>1</sup>.  For more information and implementation details, see Francois' Thesis<sup>2</sup>.
 
-<sup>1</sup> F. Aguet et al., Opt. Express 17(8), pp. 6829-6848, 2009
+<sup>1</sup> [F. Aguet et al., (2009) Opt. Express 17(8), pp. 6829-6848](https://doi.org/10.1364/OE.17.006829)
 
-<sup>2</sup> F. Aguet, Ph.D Thesis, Swiss Federal Institute of Technology, Lausanne (EPFL), 2009
+<sup>2</sup> [F. Aguet. (2009) Super-Resolution Fluorescence Microscopy Based on Physical Models. Swiss Federal Institute of Technology Lausanne, EPFL Thesis no. 4418 (2009), 209 p., May 28, 2009.](http://bigwww.epfl.ch/publications/aguet0903.html)
 
-## usage
+### see also:
 
-There are two main functions: `make_psf` and `make_centered_psf`.  The main difference is that make_psf accepts a vector of Z positions `zvec` (relative to coverslip) at which PSF is calculated, and an argument `zdepth`, specifying the position of the point source relative to the coverslip.  As such, the point source may or may not actually be in the center of the rendered volume.  `make_centered_psf`, by contrast, does not accecpt `zvec`, but rather accepts `nz` (the number of z planes) and `range` (the range in microns of the full zplane), and always generates an output volume in which the point source is positioned in the middle of the Z range, with planes equidistant from each other and a Z step size of `range / (nz - 1)`.
+For a different (faster) scalar-based Gibson–Lanni PSF model, see the [MicroscPSF](https://github.com/MicroscPSF) project, based on [Li et al (2017)](https://doi.org/10.1364/JOSAA.34.001029) which has been implemented in Python, MATLAB, and ImageJ/Java
+
+## Usage
+
+There are two main functions in `vectorialpsf`: `make_psf` and `make_centered_psf`.  The main difference is that make_psf accepts a vector of Z positions `zvec` (relative to coverslip) at which PSF is calculated, and an argument `zdepth`, specifying the position of the point source relative to the coverslip.  As such, the point source may or may not actually be in the center of the rendered volume.  `make_centered_psf`, by contrast, does not accecpt `zvec`, but rather accepts `nz` (the number of z planes) and `range` (the range in microns of the full zplane), and always generates an output volume in which the point source is positioned in the middle of the Z range, with planes equidistant from each other and a Z step size of `range / (nz - 1)`.
 
 *Note, all output dimensions (`nx` and `nz`) should be odd.*
 
