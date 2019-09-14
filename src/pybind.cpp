@@ -14,7 +14,7 @@ py::array_t<double> make_psf(py::array_t<double> zvec, int nx = 101,
                              double ns = 1.47, double wvl = 0.550,
                              double mag = 100, double na = 1.45,
                              double pixel = 6.5, int sf = 3, int mode = 1) {
-
+                               
   py::buffer_info buf1 = zvec.request();
   double *ptr1 = (double *)buf1.ptr;
   if (buf1.ndim != 1)
@@ -25,7 +25,9 @@ py::array_t<double> make_psf(py::array_t<double> zvec, int nx = 101,
     ptr1[i] *= 1e-6;
   }
 
-  double xp[] = {0.0, 0.0, zdepth};
+  py::print(zvec);
+  py::print(zdepth);
+  double xp[] = {0.0, 0.0, zdepth * 1e-6};
 
   parameters p;
 
