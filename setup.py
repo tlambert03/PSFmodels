@@ -141,7 +141,7 @@ class DeployCommand(Command):
 
 setup(
     name="vectorialpsf",
-    version="0.0.2",
+    version="1.0.0",
     author="Talley Lambert",
     author_email="talley.lambert@gmail.com",
     url="https://github.com/tlambert03/vectorialpsf",
