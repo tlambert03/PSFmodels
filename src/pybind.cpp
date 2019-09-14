@@ -163,4 +163,11 @@ PYBIND11_MODULE(vectorialpsf, m) {
         py::arg("ng0") = 1.515, py::arg("ng") = 1.515, py::arg("ns") = 1.47,
         py::arg("wvl") = 0.550, py::arg("mag") = 100, py::arg("na") = 1.45,
         py::arg("pixel") = 6.5, py::arg("sf") = 3, py::arg("mode") = 1);
+
+#ifdef VERSION_INFO
+    m.attr("__version__") = VERSION_INFO;
+#else
+    m.attr("__version__") = "dev";
+#endif
 }
+
