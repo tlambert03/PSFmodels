@@ -16,7 +16,7 @@ install:
       if ($env:PLATFORM -eq "x64") { $env:PYTHON = "$env:PYTHON-x64" }
       $env:PATH = "C:\Python$env:PYTHON\;C:\Python$env:PYTHON\Scripts\;$env:PATH"
       pip install --disable-pip-version-check --user --upgrade pip setuptools
-      pip install wheel
+      pip install wheel twine
     } elseif ($env:CONDA) {
       if ($env:CONDA -eq "27") { $env:CONDA = "" }
       if ($env:PLATFORM -eq "x64") { $env:CONDA = "$env:CONDA-x64" }
@@ -28,7 +28,7 @@ install:
     }
 
 test_script:
-- ps: python tests\test.py
+  - python setup.py test
 
 after_test:
 # - ps: |
@@ -49,4 +49,5 @@ deploy_script:
   - "echo username: talley >> %USERPROFILE%\\.pypirc"
   - type "%USERPROFILE%\\.pypirc"
   - "echo password: %pypipw% >> %USERPROFILE%\\.pypirc"
-  - python setup.py bdist_wheel upload
+  # - python setup.py bdist_wheel upload
+  - twine upload dist\\*.whl
