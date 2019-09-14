@@ -3,7 +3,7 @@ image: Visual Studio 2017
 platform:
 - x64
 environment:
-  password:
+  pypipw:
     secure: KEEdTX/BJvkl9qQucfKEkQ==
   matrix:
   - PYTHON: 36
@@ -41,8 +41,12 @@ after_test:
 #     }
 
 build_script:
+  - python setup.py sdist bdist_wheel
+
+deploy_script:
   - "echo [pypi] > %USERPROFILE%\\.pypirc"
   - "echo repository: https://test.pypi.org/legacy/ >> %USERPROFILE%\\.pypirc"
   - "echo username: talley >> %USERPROFILE%\\.pypirc"
-  - "echo password: %password% >> %USERPROFILE%\\.pypirc"
-  - python setup.py sdist bdist_wheel upload
+  - type "%USERPROFILE%\\.pypirc"
+  - "echo password: %pypipw% >> %USERPROFILE%\\.pypirc"
+  - python setup.py bdist_wheel upload
