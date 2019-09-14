@@ -6,12 +6,13 @@ environment:
   pypipw:
     secure: KEEdTX/BJvkl9qQucfKEkQ==
   matrix:
+  - PYTHON: 27
+  - PYTHON: 35
   - PYTHON: 36
   - PYTHON: 37
 install:
 - ps: |
     git submodule update -q --init --recursive
-    cmake --version
     if ($env:PYTHON) {
       if ($env:PLATFORM -eq "x64") { $env:PYTHON = "$env:PYTHON-x64" }
       $env:PATH = "C:\Python$env:PYTHON\;C:\Python$env:PYTHON\Scripts\;$env:PATH"
@@ -30,18 +31,8 @@ install:
 test_script:
   - python setup.py test
 
-after_test:
-# - ps: |
-#     if ($env:PYTHON) {
-#       python setup.py sdist bdist_wheel upload
-#       pip install --verbose dist\vectorialpsf-0.0.2-cp37-cp37m-win_amd64.whl
-#     } else {
-#       conda build conda.recipe
-#       conda install --use-local vectorialpsf
-#     }
-
 build_script:
-  - python setup.py sdist bdist_wheel
+  - python setup.py bdist_wheel
 
 deploy_script:
   - "echo [pypi] > %USERPROFILE%\\.pypirc"
