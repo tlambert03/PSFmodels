@@ -101,7 +101,7 @@ VectorialPSF::VectorialPSF(const double xp[], const double z[], const int nz,
   nx_ = nx;
   p_ = p;
 
-  xystep_ = p.pixelSize / p.M;
+  xystep_ = p.dxy;
 
   xymax_ = ((nx_)*p.sf - 1) / 2; // always fine scale
   if (!p_.mode) {
@@ -407,7 +407,7 @@ void VectorialPSF::calculatePSFdxp() {
   complex<double> t0, t1, t2;
   complex<double> expW, dW, tmp;
 
-  double xystep = p_.pixelSize / p_.M;
+  double xystep = p_.dxy;
 
   // constant component of OPD
   double ci = zp_ * (1.0 - p_.ni / p_.ns) +

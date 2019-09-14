@@ -28,7 +28,7 @@ namespace std {
 
 typedef struct {
   double ti0, ni0, ni0_2, ni, ni_2, tg0, tg, ng0, ng0_2, ng, ng_2, ns, ns_2,
-      lambda, k0, M, NA, NA_2, alpha, pixelSize;
+      lambda, k0, dxy, NA, NA_2, alpha;
   int sf, mode;
 } parameters;
 

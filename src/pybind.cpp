@@ -6,15 +6,13 @@ namespace py = pybind11;
 
 double defaultxp[3] = {0.0, 0.0, 0.0};
 
-py::array_t<double> make_psf(py::array_t<double> zvec, int nx = 101,
-                             double zdepth = 0, double ti0 = 190,
-                             double ni0 = 1.518, double ni = 1.518,
-                             double tg0 = 170, double tg = 170,
-                             double ng0 = 1.515, double ng = 1.515,
-                             double ns = 1.47, double wvl = 0.550,
-                             double mag = 100, double na = 1.45,
-                             double pixel = 6.5, int sf = 3, int mode = 1) {
-                               
+py::array_t<double>
+make_psf(py::array_t<double> zvec, int nx = 101, double zdepth = 0,
+         double ti0 = 190, double ni0 = 1.515, double ni = 1.515,
+         double tg0 = 170, double tg = 170, double ng0 = 1.515,
+         double ng = 1.515, double ns = 1.47, double wvl = 0.550,
+         double na = 1.45, double dxy = 0.05, int sf = 3, int mode = 1) {
+
   py::buffer_info buf1 = zvec.request();
   double *ptr1 = (double *)buf1.ptr;
   if (buf1.ndim != 1)
@@ -25,8 +23,6 @@ py::array_t<double> make_psf(py::array_t<double> zvec, int nx = 101,
     ptr1[i] *= 1e-6;
   }
 
-  py::print(zvec);
-  py::print(zdepth);
   double xp[] = {0.0, 0.0, zdepth * 1e-6};
 
   parameters p;
@@ -40,9 +36,8 @@ py::array_t<double> make_psf(py::array_t<double> zvec, int nx = 101,
   p.ng = ng;
   p.ns = ns;
   p.lambda = wvl * 1e-6;
-  p.M = mag;
   p.NA = na;
-  p.pixelSize = pixel * 1e-6;
+  p.dxy = dxy * 1e-6;
   p.sf = sf;
   p.mode = mode;
   p.k0 = 2 * PI / p.lambda;
@@ -62,20 +57,19 @@ py::array_t<double> make_psf(py::array_t<double> zvec, int nx = 101,
 }
 
 py::array_t<double>
-make_centered_psf(int nx = 101, int nz = 31, double range = 6,
-                  double zdepth = 0, double ti0 = 190, double ni0 = 1.518,
-                  double ni = 1.518, double tg0 = 170, double tg = 170,
+make_centered_psf(int nx = 101, int nz = 31, double dz = 0.05,
+                  double zdepth = 0, double ti0 = 190, double ni0 = 1.515,
+                  double ni = 1.515, double tg0 = 170, double tg = 170,
                   double ng0 = 1.515, double ng = 1.515, double ns = 1.47,
-                  double wvl = 0.550, double mag = 100, double na = 1.45,
-                  double pixel = 6.5, int sf = 3, int mode = 1) {
+                  double wvl = 0.550, double na = 1.45, double dxy = 0.05,
+                  int sf = 3, int mode = 1) {
 
-  double _zdepth = zdepth;
-  double lim = range / 2;
-  std::vector<double> zvecv = linspace(-lim + _zdepth, lim + _zdepth, nz);
+  double lim = (nz - 1) * dz / 2;
+  std::vector<double> zvecv = linspace(-lim + zdepth, lim + zdepth, nz);
   py::array_t<double> zvec(std::vector<ptrdiff_t>{nz}, &zvecv[0]);
 
-  return make_psf(zvec, nx, zdepth, ti0, ni0, ni, tg0, tg, ng0, ng, ns, wvl,
-                  mag, na, pixel, sf, mode);
+  return make_psf(zvec, nx, zdepth, ti0, ni0, ni, tg0, tg, ng0, ng, ns, wvl, na,
+                  dxy, sf, mode);
 }
 
 PYBIND11_MODULE(vectorialpsf, m) {
@@ -92,17 +86,16 @@ PYBIND11_MODULE(vectorialpsf, m) {
         nx (int): XY size of output PSF in pixels, must be odd.
         zdepth (float): depth of point source relative to coverslip (in microns).
         ti0 (float): (optional, default: 1.515)  working distance of the objective (microns)
-        ni0 (float): (optional, default: 1.518) immersion medium refractive index, design value
-        ni (float): (optional, default: 1.518) immersion medium refractive index, experimental value
+        ni0 (float): (optional, default: 1.515) immersion medium refractive index, design value
+        ni (float): (optional, default: 1.515) immersion medium refractive index, experimental value
         tg0 (float): (optional, default: 170) coverslip thickness, design value (microns)
         tg (float): (optional, default: 170) coverslip thickness, experimental value (microns)
         ng0 (float): (optional, default: 1.515) coverslip refractive index, design value
         ng (float): (optional, default: 1.515) coverslip refractive index, experimental value
         ns (float): (optional, default: 1.47) sample refractive index
         wvl (float): (optional, default: 0.55) emission wavelength (microns)
-        mag (float): (optional, default: 100) magnification
         na (float): (optional, default: 1.45) numerical aperture
-        pixel (float): (optional, default: 6.5) physical size (width) of the camera pixels (microns)
+        dxy (float): (optional, default: 0.05) pixel size in sample space (microns)
         sf (int): (optional, default: 3) oversampling factor to approximate pixel integration
         mode (int): (optional, default: 1) if 0, returns oversampled PSF
 
@@ -114,11 +107,11 @@ PYBIND11_MODULE(vectorialpsf, m) {
     C code by Francois Aguet, 2009. Python binding by Talley Lambert, 2019.
     )pbdoc",
         py::arg("zvec"), py::arg("nx") = 101, py::arg("zdepth") = 0,
-        py::arg("ti0") = 190, py::arg("ni0") = 1.518, py::arg("ni") = 1.518,
+        py::arg("ti0") = 190, py::arg("ni0") = 1.515, py::arg("ni") = 1.515,
         py::arg("tg0") = 170, py::arg("tg") = 170, py::arg("ng0") = 1.515,
         py::arg("ng") = 1.515, py::arg("ns") = 1.47, py::arg("wvl") = 0.550,
-        py::arg("mag") = 100, py::arg("na") = 1.45, py::arg("pixel") = 6.5,
-        py::arg("sf") = 3, py::arg("mode") = 1);
+        py::arg("na") = 1.45, py::arg("dxy") = 0.05, py::arg("sf") = 3,
+        py::arg("mode") = 1);
 
   m.def("make_centered_psf", &make_centered_psf, R"pbdoc(
     Computes a vectorial microscope point spread function model.
@@ -136,17 +129,16 @@ PYBIND11_MODULE(vectorialpsf, m) {
         range (float): physical size of Z range (in microns)
         zdepth (float): depth of point source relative to coverslip (in microns)
         ti0 (float): (optional, default: 1.515)  working distance of the objective (microns)
-        ni0 (float): (optional, default: 1.518) immersion medium refractive index, design value
-        ni (float): (optional, default: 1.518) immersion medium refractive index, experimental value
+        ni0 (float): (optional, default: 1.515) immersion medium refractive index, design value
+        ni (float): (optional, default: 1.515) immersion medium refractive index, experimental value
         tg0 (float): (optional, default: 170) coverslip thickness, design value (microns)
         tg (float): (optional, default: 170) coverslip thickness, experimental value (microns)
         ng0 (float): (optional, default: 1.515) coverslip refractive index, design value
         ng (float): (optional, default: 1.515) coverslip refractive index, experimental value
         ns (float): (optional, default: 1.47) sample refractive index
         wvl (float): (optional, default: 0.55) emission wavelength (microns)
-        mag (float): (optional, default: 100) magnification
         na (float): (optional, default: 1.45) numerical aperture
-        pixel (float): (optional, default: 6.5) physical size (width) of the camera pixels (microns)
+        dxy (float): (optional, default: 0.05) pixel size in sample space (microns)
         sf (int): (optional, default: 3) oversampling factor to approximate pixel integration
         mode (int): (optional, default: 1) if 0, returns oversampled PSF
 
@@ -159,17 +151,16 @@ PYBIND11_MODULE(vectorialpsf, m) {
     [2] F. Aguet, Ph.D Thesis, Swiss Federal Institute of Technology, Lausanne (EPFL), 2009
     C code by Francois Aguet, 2009. Python binding by Talley Lambert, 2019.
     )pbdoc",
-        py::arg("nx") = 101, py::arg("nz") = 31, py::arg("range") = 6,
-        py::arg("zdepth") = 0, py::arg("ti0") = 190, py::arg("ni0") = 1.518,
-        py::arg("ni") = 1.518, py::arg("tg0") = 170, py::arg("tg") = 170,
+        py::arg("nx") = 101, py::arg("nz") = 31, py::arg("dz") = 0.05,
+        py::arg("zdepth") = 0, py::arg("ti0") = 190, py::arg("ni0") = 1.515,
+        py::arg("ni") = 1.515, py::arg("tg0") = 170, py::arg("tg") = 170,
         py::arg("ng0") = 1.515, py::arg("ng") = 1.515, py::arg("ns") = 1.47,
-        py::arg("wvl") = 0.550, py::arg("mag") = 100, py::arg("na") = 1.45,
-        py::arg("pixel") = 6.5, py::arg("sf") = 3, py::arg("mode") = 1);
+        py::arg("wvl") = 0.550, py::arg("na") = 1.45, py::arg("dxy") = 0.05,
+        py::arg("sf") = 3, py::arg("mode") = 1);
 
 #ifdef VERSION_INFO
-    m.attr("__version__") = VERSION_INFO;
+  m.attr("__version__") = VERSION_INFO;
 #else
-    m.attr("__version__") = "dev";
+  m.attr("__version__") = "dev";
 #endif
 }
-
