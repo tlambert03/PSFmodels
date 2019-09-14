@@ -3,7 +3,10 @@ image: Visual Studio 2017
 platform:
 - x64
 environment:
+  password:
+    secure: KEEdTX/BJvkl9qQucfKEkQ==
   matrix:
+  - PYTHON: 36
   - PYTHON: 37
 install:
 - ps: |
@@ -23,14 +26,23 @@ install:
       conda update -q conda
       conda install -q conda-build
     }
-build_script:
-- ps: |
-    if ($env:PYTHON) {
-      python setup.py bdist_wheel
-      pip install --verbose dist\vectorialpsf-0.0.2.tar.gz
-    } else {
-      conda build conda.recipe
-      conda install --use-local vectorialpsf
-    }
+
 test_script:
 - ps: python tests\test.py
+
+after_test:
+# - ps: |
+#     if ($env:PYTHON) {
+#       python setup.py sdist bdist_wheel upload
+#       pip install --verbose dist\vectorialpsf-0.0.2-cp37-cp37m-win_amd64.whl
+#     } else {
+#       conda build conda.recipe
+#       conda install --use-local vectorialpsf
+#     }
+
+deploy_script:
+  - "echo [pypi] > %USERPROFILE%\\.pypirc"
+  - "echo repository: https://test.pypi.org/legacy/ >> %USERPROFILE%\\.pypirc"
+  - "echo username: talley >> %USERPROFILE%\\.pypirc"
+  - "echo password: %password% >> %USERPROFILE%\\.pypirc"
+  - python setup.py sdist bdist_wheel upload
