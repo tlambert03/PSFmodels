@@ -28,8 +28,8 @@ requirements:
 
 test:
   imports:
-    - vectorialpsf
+    - psfmodels
 
 about:
-  summary: Vectorial PSF generation
+  summary: Scalar and vectorial models of the microscope point spread function (PSF).
   license_file: GPL-3.0
