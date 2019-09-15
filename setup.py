@@ -141,11 +141,12 @@ class DeployCommand(Command):
 
 setup(
     name="psfmodels",
-    version="1.1.0",
+    version="0.0.1",
     author="Talley Lambert",
     author_email="talley.lambert@gmail.com",
+    license="GPL-3.0",
     url="https://github.com/tlambert03/PSFmodels-py",
-    description="Vectorial microscope PSF generation, written by Francois Aguet",
+    description="Scalar and vectorial models of the microscope point spread function (PSF).",
     long_description=long_description,
     long_description_content_type="text/markdown",
     ext_modules=[CMakeExtension("psfmodels")],
