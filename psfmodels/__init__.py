@@ -12,7 +12,7 @@ DEFAULT_PARAMS = {
     "ng": 1.515,  # coverslip RI experimental value
     "ni0": 1.515,  # immersion medium RI design value
     "ni": 1.515,  # immersion medium RI experimental value
-    "ns": 1.33,  # specimen refractive index (RI)
+    "ns": 1.47,  # specimen refractive index (RI)
     "ti0": 150,  # microns, working distance (immersion medium thickness) design value
     "tg": 170,  # microns, coverslip thickness experimental value
     "tg0": 170,  # microns, coverslip thickness design value
