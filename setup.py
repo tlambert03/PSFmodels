@@ -141,7 +141,7 @@ class DeployCommand(Command):
 
 setup(
     name="psfmodels",
-    version="1.0.0",
+    version="1.1.0",
     author="Talley Lambert",
     author_email="talley.lambert@gmail.com",
     url="https://github.com/tlambert03/PSFmodels-py",
