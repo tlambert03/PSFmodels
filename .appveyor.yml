@@ -40,4 +40,4 @@ deploy_script:
   - "echo username: talley >> %USERPROFILE%\\.pypirc"
   - type "%USERPROFILE%\\.pypirc"
   - "echo password: %pypipw% >> %USERPROFILE%\\.pypirc"
-  - twine upload dist\\*.whl
+  - twine --skip-existing upload dist\\*.whl
