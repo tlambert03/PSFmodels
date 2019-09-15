@@ -28,9 +28,10 @@ pip install psfmodels
 (requires cmake and a c++ compiler)
 
 ```
-git clone https://github.com/tlambert03/PSFmodels-py.git
+git clone --recurse-submodules https://github.com/tlambert03/PSFmodels-py.git
 cd PSFmodels-py
 python setup.py install
+# or python setup.py build to just build but not install
 ```
 
 ## Usage
