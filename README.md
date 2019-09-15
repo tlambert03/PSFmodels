@@ -35,7 +35,7 @@ python setup.py install
 
 ## Usage
 
-There are two main functions in `vectorialpsf`: `make_psf` and `make_centered_psf`. The main difference is that `make_psf` accepts a vector of Z positions `zvec` (relative to coverslip) at which PSF is calculated. As such, the point source may or may not actually be in the center of the rendered volume. `make_centered_psf`, by contrast, does _not_ accecpt `zvec`, but rather accepts `nz` (the number of z planes) and `dz` (the z step size in microns), and always generates an output volume in which the point source is positioned in the middle of the Z range, with planes equidistant from each other. Both functions accept an argument `zdepth`, specifying the position of the point source relative to the coverslip. See all keyword arguments below
+There are two main functions in `psfmodels`: `vectorial_psf` and `scalar_psf`. Additionally, each version has a helper function called `vectorial_psf_centered` and `scalar_psf_centered` respectively. The main difference is that the `_psf` functions accept a vector of Z positions `zv` (relative to coverslip) at which PSF is calculated. As such, the point source may or may not actually be in the center of the rendered volume. The `_psf_centered` variants, by contrast, do _not_ accecpt `zv`, but rather accept `nz` (the number of z planes) and `dz` (the z step size in microns), and always generates an output volume in which the point source is positioned in the middle of the Z range, with planes equidistant from each other. All functions accept an argument `pz`, specifying the position of the point source relative to the coverslip. See additional keyword arguments below
 
 _Note, all output dimensions (`nx` and `nz`) should be odd._
 
@@ -62,8 +62,8 @@ plt.show()
 import numpy as np
 
 # generate 31 evenly spaced Z positions from -3 to 3 microns
-zvec = np.linspace(-3, 3, 31)
-psf = psfm.vectorial_psf(zvec, nx=127)
+zv = np.linspace(-3, 3, 31)
+psf = psfm.vectorial_psf(zv, nx=127)
 psf.shape  # (31, 127, 127)
 ```
 
