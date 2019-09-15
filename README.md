@@ -1,12 +1,7 @@
-# vectorialpsf
+# PSFmodels.py
 
-Python bindings for a vectorial model of the point spread function implemented in C++.
+Python bindings for scalar and vectorial models of the point spread function, originally [implemented in C++ (with Matlab MEX bindings)](http://www.francoisaguet.net/software.html) by Francois Aguet.
 
-Prebuilt binaries available on pypi for OS X and Windows, sdist available for linux
-
-```
-pip install vectorialpsf
-```
 
 Original C code Copyright &copy; 2006-2013, [Francois Aguet](https://github.com/francois-a), distributed under GPL-3.0 license.
 Python bindings by Talley Lambert, 2019.
@@ -20,6 +15,23 @@ The model is described in Auget et al 2009<sup>1</sup>. For more information and
 ### see also:
 
 For a different (faster) scalar-based Gibson–Lanni PSF model, see the [MicroscPSF](https://github.com/MicroscPSF) project, based on [Li et al (2017)](https://doi.org/10.1364/JOSAA.34.001029) which has been implemented in Python, MATLAB, and ImageJ/Java
+
+## Install
+Prebuilt binaries available on pypi for OS X and Windows, sdist available for linux
+
+```
+pip install psfmodels
+```
+
+### from source
+
+(requires cmake and a c++ compiler)
+
+```
+git clone https://github.com/tlambert03/PSFmodels-py.git
+cd PSFmodels-py
+python setup.py install
+```
 
 ## Usage
 
