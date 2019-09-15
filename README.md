@@ -15,7 +15,7 @@ The model is described in Auget et al 2009<sup>1</sup>. For more information and
 
 <sup>1</sup> [F. Aguet et al., (2009) Opt. Express 17(8), pp. 6829-6848](https://doi.org/10.1364/OE.17.006829)
 
-<sup>2</sup> [F. Aguet. (2009) Super-Resolution Fluorescence Microscopy Based on Physical Models. Swiss Federal Institute of Technology Lausanne, EPFL Thesis no. 4418 (2009), 209 p., May 28, 2009.](http://bigwww.epfl.ch/publications/aguet0903.html)
+<sup>2</sup> [F. Aguet. (2009) Super-Resolution Fluorescence Microscopy Based on Physical Models. Swiss Federal Institute of Technology Lausanne, EPFL Thesis no. 4418](http://bigwww.epfl.ch/publications/aguet0903.html)
 
 ### see also:
 
@@ -47,7 +47,7 @@ plt.show()
 
 
 ```python
-# instead of nz and range, you can directly specify a vector of z positions
+# instead of nz and dz, you can directly specify a vector of z positions
 import numpy as np
 
 zvec = np.linspace(-3, 3, 31)
@@ -76,3 +76,9 @@ na (float):     numerical aperture [default: 1.45]
 sf (int):       oversampling factor to approximate pixel integration [default: 3]
 mode (int):     if 0, returns oversampled PSF [default: 1]
 ```
+
+## Comparison with other models
+
+While these models are definitely slower than the one implemented in [Li et al (2017)](https://doi.org/10.1364/JOSAA.34.001029) and [MicroscPSF](https://github.com/MicroscPSF), there are some interesting differences between the scalar and vectorial approximations, particularly with higher NA lenses, non-ideal sample refractive index, and increasing spherical aberration with depth from the coverslip.  
+
+For an interactive comparison, see the [examples.ipynb](examples.ipynb) Jupyter notebook.
