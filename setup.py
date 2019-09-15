@@ -140,7 +140,7 @@ class DeployCommand(Command):
 
 
 setup(
-    name="vectorialpsf",
+    name="psfmodels",
     version="1.0.0",
     author="Talley Lambert",
     author_email="talley.lambert@gmail.com",
@@ -148,8 +148,9 @@ setup(
     description="Vectorial microscope PSF generation, written by Francois Aguet",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    ext_modules=[CMakeExtension("vectorialpsf")],
+    ext_modules=[CMakeExtension("psfmodels")],
     cmdclass=dict(build_ext=CMakeBuild, clean=CleanCommand, deploy=DeployCommand),
     zip_safe=False,
     install_requires=["numpy"],
+    packages=["psfmodels"],
 )
