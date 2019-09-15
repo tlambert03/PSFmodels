@@ -25,12 +25,13 @@ build_script:
 
 deploy_script:
   - ps: |
-      if (!$env:APPVEYOR_REPO_TAG) { 
-        Exit-AppVeyorBuild
+      If ($env:APPVEYOR_REPO_TAG -ne "true") {
+          Write-Host "Skipping build, not at a tag."
+          Exit-AppveyorBuild
       }
   - "echo [pypi] > %USERPROFILE%\\.pypirc"
   - "echo repository: https://test.pypi.org/legacy/ >> %USERPROFILE%\\.pypirc"
   - "echo username: talley >> %USERPROFILE%\\.pypirc"
   - type "%USERPROFILE%\\.pypirc"
   - "echo password: %pypipw% >> %USERPROFILE%\\.pypirc"
-  - twine --skip-existing upload dist\\*.whl
+  - twine upload --skip-existing dist\\*.whl
