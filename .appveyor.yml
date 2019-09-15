@@ -34,7 +34,7 @@ build_script:
   - python setup.py bdist_wheel
 
 deploy_script:
-  - if (!$env:APPVEYOR_REPO_TAG) {appveyor exit}
+  - if (!$env:APPVEYOR_REPO_TAG) { appveyor exit }
   - "echo [pypi] > %USERPROFILE%\\.pypirc"
   - "echo repository: https://test.pypi.org/legacy/ >> %USERPROFILE%\\.pypirc"
   - "echo username: talley >> %USERPROFILE%\\.pypirc"
