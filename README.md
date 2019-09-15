@@ -1,10 +1,9 @@
-# PSFmodels.py
+# PSFmodels-py
 
-Python bindings for scalar and vectorial models of the point spread function, originally [implemented in C++ (with Matlab MEX bindings)](http://www.francoisaguet.net/software.html) by Francois Aguet.
+Python bindings for scalar and vectorial models of the point spread function.
 
-
-Original C code Copyright &copy; 2006-2013, [Francois Aguet](https://github.com/francois-a), distributed under GPL-3.0 license.
-Python bindings by Talley Lambert, 2019.
+Original C++ code and MATLAB MEX bindings Copyright &copy; 2006-2013, [Francois Aguet](http://www.francoisaguet.net/software.html), distributed under GPL-3.0 license.
+Python bindings by Talley Lambert
 
 The model is described in Auget et al 2009<sup>1</sup>. For more information and implementation details, see Francois' Thesis<sup>2</sup>.
 

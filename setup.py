@@ -144,7 +144,7 @@ setup(
     version="1.0.0",
     author="Talley Lambert",
     author_email="talley.lambert@gmail.com",
-    url="https://github.com/tlambert03/vectorialpsf",
+    url="https://github.com/tlambert03/PSFmodels-py",
     description="Vectorial microscope PSF generation, written by Francois Aguet",
     long_description=long_description,
     long_description_content_type="text/markdown",
