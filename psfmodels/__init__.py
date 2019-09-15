@@ -77,7 +77,7 @@ def _validate_args(zv, dxy, pz):
 def vectorial_psf(zv=0, nx=31, dxy=0.05, pz=0, wvl=0.6, mp=None, normalize=True):
     zv = _validate_args(zv, dxy, pz)
     mp = normalize_params(mp)
-    _psf = library.vectorial_psf(zv, int(nx), pz, wvl=wvl, dxy=dxy, **mp)
+    _psf = library.vectorial_psf(zv.copy(), int(nx), pz, wvl=wvl, dxy=dxy, **mp)
     if normalize:
         _psf /= np.max(_psf)
     return _psf
@@ -86,7 +86,7 @@ def vectorial_psf(zv=0, nx=31, dxy=0.05, pz=0, wvl=0.6, mp=None, normalize=True)
 def scalar_psf(zv=0, nx=31, dxy=0.05, pz=0, wvl=0.6, mp=None, normalize=True):
     zv = _validate_args(zv, dxy, pz)
     mp = normalize_params(mp)
-    _psf = library.scalar_psf(zv, int(nx), pz, wvl=wvl, dxy=dxy, **mp)
+    _psf = library.scalar_psf(zv.copy(), int(nx), pz, wvl=wvl, dxy=dxy, **mp)
     if normalize:
         _psf /= np.max(_psf)
     return _psf
