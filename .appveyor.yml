@@ -30,7 +30,7 @@ deploy_script:
           Exit-AppveyorBuild
       }
   - "echo [pypi] > %USERPROFILE%\\.pypirc"
-  - "echo repository: https://test.pypi.org/legacy/ >> %USERPROFILE%\\.pypirc"
+  # - "echo repository: https://test.pypi.org/legacy/ >> %USERPROFILE%\\.pypirc"
   - "echo username: talley >> %USERPROFILE%\\.pypirc"
   - type "%USERPROFILE%\\.pypirc"
   - "echo password: %pypipw% >> %USERPROFILE%\\.pypirc"

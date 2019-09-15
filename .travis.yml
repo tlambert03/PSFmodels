@@ -33,7 +33,7 @@ script:
 deploy:
   provider: pypi
   distributions: $DIST
-  server: https://test.pypi.org/legacy/  # Remove for deployment to official PyPi repo
+  # server: https://test.pypi.org/legacy/  # Remove for deployment to official PyPi repo
   user: talley
   password:
     secure: TcBGZF0ySE6FszEkdOOIQvXji04qX/g5I0xlGjKIFfRGclTphFs3lec49fMmMjetswOKTeJwfg4eY0lJztcooJ25mqe2CTwuViy/H/6FeMZPN7kPoT4qQHWVLw0Q4XYg66muMl443CL0QZz8c5vlHWM87vvxFFcUEJpCJniVXzQpLz/yr0WNVuMDLV8aIULB4ksN7C6CYrY+o6xw9z07XGvNh92rWCSppSyGeStoJR9U1jNac4tXyXJEe7TLiD/dBHljQGZyEf7GzV2EoO6ggsVOMtqH4p2udx3nFBxFqjjPI/iVKEZUur1nvPK20jZ3s0RmtvtowTGzd6ZTTPO28+TQSLYiLgP9zRnUc8mE94D3iu3McQxvjJA/tKaoe+phA01SH1b2ahY6kbAs++7NFcV8L0Tc9oDyE8TdLcxXUPu/BCcZoZF+X1QHlVgulwUf5eFRONwxxsj0B/5L0rRhy+zAxuNqKy18PmWyhcEqkGZPN3WokeTMK1B4NdGwrUbkXP7+Yhwy9hPdRGFihbCoPDwwAfsVnxyXBo1swh9jlDPmoeLLOdwC6zpA+BXIVu2Dewx+MrupqUijDh5SU/SvIwNkGlj+7CkP48V1u8XjfgGM8Nfhc4U0sWOp9SfQ7dS9mxUg2i2eIQzKqxQua4NqZdlLA/eak0xnSbOgaKfXwOI=
