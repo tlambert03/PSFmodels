@@ -13,7 +13,7 @@ The model is described in Auget et al 2009<sup>1</sup>. For more information and
 
 ### see also:
 
-For a different (faster) scalar-based Gibson–Lanni PSF model, see the [MicroscPSF](https://github.com/MicroscPSF) project, based on [Li et al (2017)](https://doi.org/10.1364/JOSAA.34.001029) which has been implemented in Python, MATLAB, and ImageJ/Java
+For a different (faster) scalar-based Gibson–Lanni PSF model, see the [MicroscPSF](https://github.com/MicroscPSF) project, based on [Li et al (2017)](https://doi.org/10.1364/JOSAA.34.001029) which has been implemented in [Python](https://github.com/MicroscPSF/MicroscPSF-Py), [MATLAB](https://github.com/MicroscPSF/MicroscPSF-Matlab), and [ImageJ/Java](https://github.com/MicroscPSF/MicroscPSF-ImageJ)
 
 ## Install
 Prebuilt binaries available on pypi for OS X and Windows, sdist available for linux
