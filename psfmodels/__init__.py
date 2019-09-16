@@ -238,6 +238,115 @@ _otherapidoc = """
 vectorialXYZFocalScan.__doc__ += _otherapidoc
 scalarXYZFocalScan.__doc__ += _otherapidoc
 
+
+def tot_psf(
+    nx=127,
+    nz=127,
+    dxy=0.05,
+    dz=0.05,
+    pz=0,
+    z_offset=0,
+    x_offset=0,
+    ex_wvl=0.488,
+    em_wvl=0.525,
+    ex_params=None,
+    em_params=None,
+    psf_func="vectorial",
+):
+    """Simlulate a total system psf with orthogonal illumination & detection (e.g. SPIM)
+
+    Args:
+        nx (int, optional): XY size of output PSF in pixels, must be odd. Defaults to 127.
+        nz (int): Z size of output PSF in pixels, must be odd. Defaults to 127.
+        dxy (float, optional): XY Pixel size in sample space (microns). Defaults to 0.05.
+        dz (float, optional): Z step size of PSF in sample space. Defaults to 0.05
+        pz (int, optional): Depth of point source relative to coverslip in microns.
+                            Defaults to 0.
+        z_offset (int, optional): Defocus between the axial position of the excitation
+            and the detection plane, with respect to the detection lens. Defaults to 0.
+        x_offset (int, optional): Mismatch between the focal point of the excitation beam
+            and the point source, along the propogation direction of the excitation beam.
+            Defaults to 0.
+        ex_wvl (float, optional): Emission wavelength in microns. Defaults to 0.488.
+        em_wvl (float, optional): Emission wavelength in microns. Defaults to 0.525.
+        ex_params ([type], optional): Excitation lens parameters dict. See keys below.
+        em_params ([type], optional): Emission lens parameters dict. See keys below.
+        psf_func (str, optional): The psf model to use.  Can be any of
+            {'vectorial', 'scalar', or 'microscpsf'}.  Where 'microscpsf' uses the
+            `gLXYZFocalScan` function from MicroscPSF-Py (if installed).
+            Defaults to "vectorial".
+
+        valid params (all floats unless stated, all distances in microns):
+            NA:  Numerical Aperture. Defaults to 0.4 for excitation and 1.1 for emission
+            ni0: Immersion medium RI design value. Defaults to 1.33
+            ni:  Immersion medium RI experimental value. Defaults to 1.33
+            ns:  Specimen refractive RI. Defaults to 1.33
+            tg:  Coverslip thickness experimental value. Defaults to 0 (water immersion)
+            tg0: Coverslip thickness design value. Defaults to 0 (water immersion)
+            ti0: Working distance (immersion medium thickness) design value.
+                 Defaults to 150
+            ng0: Coverslip RI design value. Defaults to 1.515
+            ng:  Coverslip RI experimental value. Defaults to 1.515
+
+    Raises:
+        ImportError: If `psf_func` == 'microscpsf' and MicroscPSF-Py cannot be imported
+        ValueError: If `psf_func` is not one of {'vectorial', 'scalar', or 'microscpsf'}
+
+    Returns:
+        3-tuple of np.ndarrays:  ex_psf, em_psf, total_system_psf
+    """
+
+    _x_params = _DEFAULT_PARAMS.copy()
+    _x_params.update({"ni0": 1.33, "ni": 1.33, "ns": 1.33, "tg": 0, "tg0": 0})
+    _x_params["NA"] = 0.4
+    _m_params = _x_params.copy()
+    _m_params["NA"] = 1.1
+    if ex_params is not None:
+        _x_params.update(ex_params)
+    if em_params is not None:
+        _m_params.update(em_params)
+
+    if psf_func.lower().startswith("microsc"):
+        try:
+            import microscPSF.microscPSF as msPSF
+        except ImportError:
+            raise ImportError(
+                'Could not import MicroscPSF-Py.  Install with "pip install MicroscPSF-Py"'
+            )
+        f = msPSF.gLXYZFocalScan
+        _x_params["zd0"] = _x_params.get("zd0", 200.0 * 1.0e3)
+        _x_params["M"] = _x_params.get("M", 100)
+        _m_params["zd0"] = _m_params.get("zd0", 200.0 * 1.0e3)
+        _m_params["M"] = _m_params.get("M", 100)
+    elif psf_func.lower().startswith("vectorial"):
+        f = vectorialXYZFocalScan
+    elif psf_func.lower().startswith("scalar"):
+        f = scalarXYZFocalScan
+    else:
+        raise ValueError(
+            'psf_func must be one of {"vectorial", "scalar", or "microscpsf"}'
+        )
+
+    lim = (nx - 1) * dxy / 2
+    emzvec = _np.linspace(-lim + x_offset, lim + x_offset, nx)
+    if _np.mod(z_offset / dz, 1) != 0:
+        z_offset = dz * _np.round(z_offset / dz)
+        _wrn.warn(
+            "Not Implemented: z_offset must be an even multiple of dz. "
+            "Coercing z_offset to nearest dz multiple: %s" % z_offset
+        )
+    _zoff = int(_np.ceil(z_offset / dz))
+    ex_nx = nz + 2 * _np.abs(_zoff)
+    exzvec = _centered_zv(nz, dz, pz)
+
+    ex_psf = f(_x_params, dz, ex_nx, emzvec, pz=0, wvl=ex_wvl).T.sum(0)
+    ex_psf = ex_psf[:nz] if _zoff >= 0 else ex_psf[-nz:]
+    em_psf = f(_m_params, dxy, nx, exzvec, pz=pz, wvl=em_wvl)
+
+    combined = ex_psf[:, :, _np.newaxis] * em_psf
+    return (ex_psf, em_psf, combined)
+
+
 __all__ = [
     "vectorial_psf",
     "scalar_psf",
