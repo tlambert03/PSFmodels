@@ -141,7 +141,7 @@ class DeployCommand(Command):
 
 setup(
     name="psfmodels",
-    version="0.1.0",
+    version="0.2.0",
     author="Talley Lambert",
     author_email="talley.lambert@gmail.com",
     license="GPL-3.0",
