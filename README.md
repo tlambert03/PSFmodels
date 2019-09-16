@@ -93,3 +93,7 @@ mode (int):     if 0, returns oversampled PSF [default: 1]
 While these models are definitely slower than the one implemented in [Li et al (2017)](https://doi.org/10.1364/JOSAA.34.001029) and [MicroscPSF](https://github.com/MicroscPSF), there are some interesting differences between the scalar and vectorial approximations, particularly with higher NA lenses, non-ideal sample refractive index, and increasing spherical aberration with depth from the coverslip.
 
 For an interactive comparison, see the [examples.ipynb](examples.ipynb) Jupyter notebook.
+
+## Lightsheet PSF utility function
+
+The `psfmodels.tot_psf()` function provides a quick way to simulate the total system PSF (excitation x detection) as might be observed on a light sheet microscope (currently, only strictly orthogonal illumination and detection are supported).  See the [lightsheet.ipynb](lightsheet.ipynb) Jupyter notebook for examples.
