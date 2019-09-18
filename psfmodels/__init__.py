@@ -13,9 +13,9 @@ _DEFAULT_PARAMS = {
     "ni0": 1.515,  # immersion medium RI design value
     "ni": 1.515,  # immersion medium RI experimental value
     "ns": 1.47,  # specimen refractive index (RI)
-    "ti0": 150,  # microns, working distance (immersion medium thickness) design value
-    "tg": 170,  # microns, coverslip thickness experimental value
-    "tg0": 170,  # microns, coverslip thickness design value
+    "ti0": 150.0,  # microns, working distance (immersion medium thickness) design value
+    "tg": 170.0,  # microns, coverslip thickness experimental value
+    "tg0": 170.0,  # microns, coverslip thickness design value
 }
 
 _VALID_ARGS = [
@@ -148,6 +148,30 @@ def vectorial_psf(zv=0, nx=31, dxy=0.05, pz=0.0, wvl=0.6, params=None, normalize
     if normalize:
         _psf /= _np.max(_psf)
     return _psf
+
+
+def vectorial_psf_deriv(
+    zv=0, nx=31, dxy=0.05, pz=0.0, wvl=0.6, params=None, normalize=True
+):
+    """Computes a vectorial model of the microscope point spread function.
+
+    also returns derivatives in dx, dy, dz.
+
+    Returns:
+        4-tuple of np.ndarrays: (_psf, dxp, dyp, dzp)
+
+    """
+    zv = _validate_args(zv, dxy, pz)
+    params = normalize_params(params)
+    pixdxp = _np.zeros((len(zv), nx, nx))
+    pixdyp = _np.zeros((len(zv), nx, nx))
+    pixdzp = _np.zeros((len(zv), nx, nx))
+    _psf = library.vectorial_psf_deriv(
+        pixdxp, pixdyp, pixdzp, zv.copy(), int(nx), pz, wvl=wvl, dxy=dxy, **params
+    )
+    if normalize:
+        _psf /= _np.max(_psf)
+    return _psf, pixdxp, pixdyp, pixdzp
 
 
 def scalar_psf(zv=0, nx=31, dxy=0.05, pz=0, wvl=0.6, params=None, normalize=True):
@@ -349,10 +373,12 @@ def tot_psf(
 
 __all__ = [
     "vectorial_psf",
+    "vectorial_psf_deriv",
     "scalar_psf",
     "vectorial_psf_centered",
     "scalar_psf_centered",
     "vectorialXYZFocalScan",
     "scalarXYZFocalScan",
     "normalize_params",
+    "tot_psf",
 ]
