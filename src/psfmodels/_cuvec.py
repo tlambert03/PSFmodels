@@ -91,9 +91,9 @@ def simpson(
     sintheta = xp.sin(theta)
     costheta = xp.cos(theta)
     sqrtcostheta = xp.sqrt(costheta).astype("complex")
-    ni2sin2theta = (p.ni ** 2 * sintheta ** 2).astype("complex")
-    nsroot = xp.sqrt(p.ns ** 2 - ni2sin2theta)
-    ngroot = xp.sqrt(p.ng ** 2 - ni2sin2theta)
+    ni2sin2theta = (p.ni**2 * sintheta**2).astype("complex")
+    nsroot = xp.sqrt(p.ns**2 - ni2sin2theta)
+    ngroot = xp.sqrt(p.ng**2 - ni2sin2theta)
     expW = xp.exp(
         1j
         * wave_num
@@ -101,8 +101,8 @@ def simpson(
             (ci - (zv[:, xp.newaxis, xp.newaxis] if zv.ndim else zv)) * p.ni * costheta
             + zp * nsroot
             + p.tg * ngroot
-            - p.tg0 * xp.sqrt(p.ng0 ** 2 - ni2sin2theta)
-            - p.ti0 * xp.sqrt(p.ni0 ** 2 - ni2sin2theta)
+            - p.tg0 * xp.sqrt(p.ng0**2 - ni2sin2theta)
+            - p.ti0 * xp.sqrt(p.ni0**2 - ni2sin2theta)
         )
     )
 
@@ -131,7 +131,7 @@ def simpson(
     sum_I1 = xp.abs((expW * bessel_1).sum(-1))
     sum_I2 = xp.abs((expW * bessel_2).sum(-1))
 
-    return xp.real(sum_I0 ** 2 + 2.0 * sum_I1 ** 2 + sum_I2 ** 2)
+    return xp.real(sum_I0**2 + 2.0 * sum_I1**2 + sum_I2**2)
 
 
 def vectorial_rz(zv, nx=51, pos=(0, 0, 0), dxy=0.04, wvl=0.6, params={}, sf=3):
@@ -232,7 +232,7 @@ if __name__ == "__main__":
     t1 = perf_counter()
     print(psf.shape)
     print(t1 - t0)
-    assert np.allclose(np.load("out.npy"), psf, atol=.1)
+    assert np.allclose(np.load("out.npy"), psf, atol=0.1)
 
     # import napari
     # napari.view_image(psf)

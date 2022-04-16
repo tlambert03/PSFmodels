@@ -7,7 +7,8 @@ namespace py = pybind11;
 
 parameters norm_params(float ti0, float ni0, float ni, float tg0, float tg,
                        float ng0, float ng, float ns, float wvl, float NA,
-                       float dxy, int sf, int mode) {
+                       float dxy, int sf, int mode)
+{
   parameters p;
 
   p.ti0 = ti0 * 1e-6;
@@ -39,14 +40,16 @@ py::array_t<double> vectorial_psf(py::array_t<double> zv, int nx, double pz,
                                   double ti0, double ni0, double ni, double tg0,
                                   double tg, double ng0, double ng, double ns,
                                   double wvl, double NA, double dxy, int sf = 3,
-                                  int mode = 1) {
+                                  int mode = 1)
+{
 
   // convert zv microns to meters
   py::buffer_info zvbuf = zv.request();
   double *zvptr = (double *)zvbuf.ptr;
   if (zvbuf.ndim != 1)
     throw std::runtime_error("zv must be a 1-dimensional array");
-  for (size_t i = 0; i < zv.size(); i++) {
+  for (py::ssize_t i = 0; i < zv.size(); i++)
+  {
     zvptr[i] *= 1e-6;
   }
 
@@ -67,14 +70,16 @@ vectorial_psf_deriv(py::array_t<double> pixdxp, py::array_t<double> pixdyp,
                     py::array_t<double> pixdzp, py::array_t<double> zv, int nx,
                     double pz, double ti0, double ni0, double ni, double tg0,
                     double tg, double ng0, double ng, double ns, double wvl,
-                    double NA, double dxy, int sf = 3, int mode = 1) {
+                    double NA, double dxy, int sf = 3, int mode = 1)
+{
 
   // convert zv microns to meters
   py::buffer_info zvbuf = zv.request();
   double *zvptr = (double *)zvbuf.ptr;
   if (zvbuf.ndim != 1)
     throw std::runtime_error("zv must be a 1-dimensional array");
-  for (size_t i = 0; i < zv.size(); i++) {
+  for (py::ssize_t i = 0; i < zv.size(); i++)
+  {
     zvptr[i] *= 1e-6;
   }
 
@@ -93,7 +98,8 @@ vectorial_psf_deriv(py::array_t<double> pixdxp, py::array_t<double> pixdyp,
          *pixdypptr = (double *)pixdypbuf.ptr,
          *pixdzpptr = (double *)pixdzpbuf.ptr;
 
-  for (size_t idx = 0; idx < pixdxpbuf.size; idx++) {
+  for (py::ssize_t idx = 0; idx < pixdxpbuf.size; idx++)
+  {
     pixdxpptr[idx] = psf.pixelsDxp_[idx];
     pixdypptr[idx] = psf.pixelsDyp_[idx];
     pixdzpptr[idx] = psf.pixelsDzp_[idx];
@@ -107,14 +113,16 @@ py::array_t<double> scalar_psf(py::array_t<double> zv, int nx, double pz,
                                double ti0, double ni0, double ni, double tg0,
                                double tg, double ng0, double ng, double ns,
                                double wvl, double NA, double dxy, int sf = 3,
-                               int mode = 1) {
+                               int mode = 1)
+{
 
   // convert zv microns to meters
   py::buffer_info zvbuf = zv.request();
   double *zvptr = (double *)zvbuf.ptr;
   if (zvbuf.ndim != 1)
     throw std::runtime_error("zv must be a 1-dimensional array");
-  for (size_t i = 0; i < zv.size(); i++) {
+  for (py::ssize_t i = 0; i < zv.size(); i++)
+  {
     zvptr[i] *= 1e-6;
   }
 
@@ -130,12 +138,13 @@ py::array_t<double> scalar_psf(py::array_t<double> zv, int nx, double pz,
       std::vector<ptrdiff_t>{nz, nx, nx}, &psf.pixels_[0]);
 }
 
-PYBIND11_MODULE(_psfmodels, m) {
+PYBIND11_MODULE(_psfmodels, m)
+{
   m.doc() = "Scalar and Vectorial PSF Models"; // optional module docstring
 
   m.def("vectorial_psf", &vectorial_psf, R"pbdoc(
     Computes a vectorial microscope point spread function model.
-    
+
     The model is described in F. Aguet et al., Opt. Express 17(8), pp. 6829-6848, 2009
     For more information and implementation details, see F. Aguet, Ph.D Thesis, Swiss
     Federal Institute of Technology, Lausanne (EPFL), 2009
@@ -143,7 +152,7 @@ PYBIND11_MODULE(_psfmodels, m) {
     C++ code by Francois Aguet, 2009. Python bindings by Talley Lambert, 2019.
 
     Args:
-        zv (np.ndarray): Vector of Z positions at which PSF is calculated (in microns, relative to coverslip) 
+        zv (np.ndarray): Vector of Z positions at which PSF is calculated (in microns, relative to coverslip)
         nx (int): XY size of output PSF in pixels, must be odd.
         pz (float): point source z position above the coverslip in microns.
         ti0 (float):  working distance of the objective (microns)
@@ -180,7 +189,7 @@ PYBIND11_MODULE(_psfmodels, m) {
 
   m.def("scalar_psf", &scalar_psf, R"pbdoc(
     Computes the scalar PSF model described by Gibson and Lanni
-    
+
     The model is described in F. Aguet et al., Opt. Express 17(8), pp. 6829-6848, 2009
     For more information and implementation details, see F. Aguet, Ph.D Thesis, Swiss
     Federal Institute of Technology, Lausanne (EPFL), 2009
@@ -188,7 +197,7 @@ PYBIND11_MODULE(_psfmodels, m) {
     C++ code by Francois Aguet, 2009. Python bindings by Talley Lambert, 2019.
 
     Args:
-        zv (np.ndarray): Vector of Z positions at which PSF is calculated (in microns, relative to coverslip) 
+        zv (np.ndarray): Vector of Z positions at which PSF is calculated (in microns, relative to coverslip)
         nx (int): XY size of output PSF in pixels, must be odd.
         pz (float): point source z position above the coverslip in microns.
         ti0 (float):  working distance of the objective (microns)
@@ -213,10 +222,4 @@ PYBIND11_MODULE(_psfmodels, m) {
         py::arg("ni0"), py::arg("ni"), py::arg("tg0"), py::arg("tg"),
         py::arg("ng0"), py::arg("ng"), py::arg("ns"), py::arg("wvl"),
         py::arg("NA"), py::arg("dxy"), py::arg("sf") = 3, py::arg("mode") = 1);
-
-#ifdef VERSION_INFO
-  m.attr("__version__") = VERSION_INFO;
-#else
-  m.attr("__version__") = "dev";
-#endif
 }

@@ -1,2 +1,33 @@
 [build-system]
-requires = ["setuptools", "wheel", "cmake", "ninja"]
+requires = [
+    "setuptools",
+    "wheel",
+    "setuptools-scm",
+    "pybind11>=2.8.0",
+]
+build-backend = "setuptools.build_meta"
+
+
+[tool.setuptools_scm]
+write_to = "src/psfmodels/_version.py"
+
+[tool.check-manifest]
+ignore = [
+    ".github_changelog_generator",
+    ".pre-commit-config.yaml",
+    "fig.png",
+    "notebooks/*",
+    "tests/*",
+    "tox.ini",
+    'src/psfmodels/_version.py',
+]
+
+[tool.cibuildwheel]
+# Skip 32-bit builds & PyPy wheels on all platforms
+skip = ["*-win32", "pp*", "*i686"]
+test-extras = ["testing"]
+test-command = "pytest {project}/tests -v"
+test-skip = "*-musllinux*"
+
+[tool.cibuildwheel.macos]
+archs = ["x86_64", "arm64"]
