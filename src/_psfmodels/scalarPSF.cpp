@@ -28,7 +28,6 @@
  * scalarPSF.cpp
  */
 
-
 #include "psfmath.h"
 #include <string.h>
 
@@ -36,7 +35,8 @@
 
 using namespace std;
 
-class ScalarPSF {
+class ScalarPSF
+{
 
 public:
   ScalarPSF(const double xp[], const double z[], const int nz, const int nx,
@@ -76,7 +76,8 @@ private:
 const complex<double> ScalarPSF::i = complex<double>(0.0, 1.0);
 
 ScalarPSF::ScalarPSF(const double xp[], const double z[], const int nz,
-                     const int nx, const parameters p) {
+                     const int nx, const parameters p)
+{
   xp_ = xp[0];
   yp_ = xp[1];
   zp_ = xp[2];
@@ -89,7 +90,8 @@ ScalarPSF::ScalarPSF(const double xp[], const double z[], const int nz,
   xystep_ = p.dxy;
 
   xymax_ = ((nx_)*p.sf - 1) / 2; // always fine scale
-  if (!p_.mode) {
+  if (!p_.mode)
+  {
     nx_ *= p_.sf; // oversampling factor
   }
 
@@ -110,7 +112,8 @@ ScalarPSF::ScalarPSF(const double xp[], const double z[], const int nz,
   pixelsDzp_ = new double[N_];
 
   integral_ = new double *[nz_];
-  for (int k = 0; k < nz_; ++k) {
+  for (int k = 0; k < nz_; ++k)
+  {
     integral_[k] = new double[rmax_];
   }
   // initialize since loops add to these arrays
@@ -123,8 +126,10 @@ ScalarPSF::ScalarPSF(const double xp[], const double z[], const int nz,
   R = new double[npx_];
   int idx = 0;
   double xi, yi;
-  for (int y = -xymax_; y <= xymax_; ++y) {
-    for (int x = -xymax_; x <= xymax_; ++x) {
+  for (int y = -xymax_; y <= xymax_; ++y)
+  {
+    for (int x = -xymax_; x <= xymax_; ++x)
+    {
       xi = (double)x - xp_;
       yi = (double)y - yp_;
       R[idx] = sqrt(xi * xi + yi * yi);
@@ -133,9 +138,11 @@ ScalarPSF::ScalarPSF(const double xp[], const double z[], const int nz,
   }
 }
 
-ScalarPSF::~ScalarPSF() {
+ScalarPSF::~ScalarPSF()
+{
   delete[] R;
-  for (int k = 0; k < nz_; ++k) {
+  for (int k = 0; k < nz_; ++k)
+  {
     delete[] integral_[k];
   }
   delete[] integral_;
@@ -145,7 +152,8 @@ ScalarPSF::~ScalarPSF() {
   delete[] pixels_;
 }
 
-void ScalarPSF::calculatePSF() {
+void ScalarPSF::calculatePSF()
+{
 
   double r;
   int n;
@@ -170,31 +178,39 @@ void ScalarPSF::calculatePSF() {
   double ud = 3.0 * p_.sf;
 
   complex<double> L_th[2];
-  for (int k = 0; k < nz_; ++k) {
+  for (int k = 0; k < nz_; ++k)
+  {
 
     L_theta(L_th, p_.alpha, p_, ci, z_[k], zp_);
     w_exp = abs(L_th[1]); // missing p.k0, multiply below
 
     cst = 0.975;
-    while (cst >= 0.9) {
+    while (cst >= 0.9)
+    {
       L_theta(L_th, cst * p_.alpha, p_, ci, z_[k], zp_);
-      if (abs(L_th[1]) > w_exp) {
+      if (abs(L_th[1]) > w_exp)
+      {
         w_exp = abs(L_th[1]);
       }
       cst -= 0.025;
     }
     w_exp *= p_.k0;
 
-    for (int ri = 0; ri < rmax_; ++ri) {
+    for (int ri = 0; ri < rmax_; ++ri)
+    {
       r = xystep_ / p_.sf * (double)(ri);
       constJ = p_.k0 * r * p_.ni; // samples required for bessel term
 
-      if (w_exp > constJ) {
+      if (w_exp > constJ)
+      {
         nSamples = 4 * (int)(1.0 + p_.alpha * w_exp / PI);
-      } else {
+      }
+      else
+      {
         nSamples = 4 * (int)(1.0 + p_.alpha * constJ / PI);
       }
-      if (nSamples < 20) {
+      if (nSamples < 20)
+      {
         nSamples = 20;
       }
       step = p_.alpha / (double)nSamples;
@@ -203,7 +219,8 @@ void ScalarPSF::calculatePSF() {
 
       // Simpson's rule
       sum_I0 = 0.0;
-      for (n = 1; n < nSamples / 2; n++) {
+      for (n = 1; n < nSamples / 2; n++)
+      {
         theta = 2.0 * n * step;
         sintheta = sin(theta);
         costheta = cos(theta);
@@ -218,7 +235,8 @@ void ScalarPSF::calculatePSF() {
                     p_.ti0 * sqrt(complex<double>(p_.ni0_2 - ni2sin2theta))));
         sum_I0 += expW * bessel_0;
       }
-      for (n = 1; n <= nSamples / 2; n++) {
+      for (n = 1; n <= nSamples / 2; n++)
+      {
         theta = (2.0 * n - 1.0) * step;
         sintheta = sin(theta);
         costheta = cos(theta);
@@ -252,12 +270,16 @@ void ScalarPSF::calculatePSF() {
   // Interpolate (linear)
   int r0;
   int index = 0;
-  if (p_.mode == 1) { // average if sf>1
+  if (p_.mode == 1)
+  { // average if sf>1
     div_t divRes;
-    for (k = 0; k < nz_; ++k) {
-      for (int i = 0; i < npx_; ++i) {
+    for (k = 0; k < nz_; ++k)
+    {
+      for (int i = 0; i < npx_; ++i)
+      {
         r0 = (int)R[i];
-        if (r0 + 1 < rmax_) {
+        if (r0 + 1 < rmax_)
+        {
           dr = R[i] - r0;
           divRes = div(i, 2 * xymax_ + 1);
           index = divRes.rem / p_.sf +
@@ -267,11 +289,16 @@ void ScalarPSF::calculatePSF() {
         } // else '0'
       }
     }
-  } else { // oversample if sf>1
-    for (k = 0; k < nz_; ++k) {
-      for (int i = 0; i < npx_; ++i) {
+  }
+  else
+  { // oversample if sf>1
+    for (k = 0; k < nz_; ++k)
+    {
+      for (int i = 0; i < npx_; ++i)
+      {
         r0 = (int)R[i];
-        if (r0 + 1 < rmax_) {
+        if (r0 + 1 < rmax_)
+        {
           dr = R[i] - r0;
           pixels_[i + k * npx_] =
               dr * integral_[k][r0 + 1] + (1.0 - dr) * integral_[k][r0];
@@ -281,7 +308,8 @@ void ScalarPSF::calculatePSF() {
   }
 }
 
-void ScalarPSF::calculatePSFdxp() {
+void ScalarPSF::calculatePSFdxp()
+{
 
   double r;
   int n;
@@ -292,7 +320,7 @@ void ScalarPSF::calculatePSFdxp() {
 
   double theta, sintheta, costheta, ni2sin2theta;
   complex<double> bessel_0, bessel_1, expW, dW, nsroot;
-  complex<double> sum_I0, sum_dxI0, sum_d2xI0, sum_dzI0, sum_d2zI0;
+  complex<double> sum_I0, sum_dxI0, sum_dzI0;
   complex<double> tmp;
 
   // allocate dynamic structures
@@ -300,7 +328,8 @@ void ScalarPSF::calculatePSFdxp() {
   double **integralDz;
   integralD = new double *[nz_];
   integralDz = new double *[nz_];
-  for (int k = 0; k < nz_; k++) {
+  for (int k = 0; k < nz_; k++)
+  {
     integralD[k] = new double[rmax_];
     integralDz[k] = new double[rmax_];
   }
@@ -318,31 +347,39 @@ void ScalarPSF::calculatePSFdxp() {
 
   complex<double> L_th[2];
 
-  for (int k = 0; k < nz_; ++k) {
+  for (int k = 0; k < nz_; ++k)
+  {
 
     L_theta(L_th, p_.alpha, p_, ci, z_[k], zp_);
     w_exp = abs(L_th[1]);
 
     cst = 0.975;
-    while (cst >= 0.9) {
+    while (cst >= 0.9)
+    {
       L_theta(L_th, cst * p_.alpha, p_, ci, z_[k], zp_);
-      if (abs(L_th[1]) > w_exp) {
+      if (abs(L_th[1]) > w_exp)
+      {
         w_exp = abs(L_th[1]);
       }
       cst -= 0.025;
     }
     w_exp *= p_.k0;
 
-    for (ri = 0; ri < rmax_; ++ri) {
+    for (ri = 0; ri < rmax_; ++ri)
+    {
 
       r = xystep_ / p_.sf * (double)(ri);
       constJ = p_.k0 * r * p_.ni;
-      if (w_exp > constJ) {
+      if (w_exp > constJ)
+      {
         nSamples = 4 * (int)(1.0 + p_.alpha * w_exp / PI);
-      } else {
+      }
+      else
+      {
         nSamples = 4 * (int)(1.0 + p_.alpha * constJ / PI);
       }
-      if (nSamples < 20) {
+      if (nSamples < 20)
+      {
         nSamples = 20;
       }
       step = p_.alpha / (double)nSamples;
@@ -354,7 +391,8 @@ void ScalarPSF::calculatePSFdxp() {
       sum_dxI0 = 0.0;
       sum_dzI0 = 0.0;
 
-      for (n = 1; n < nSamples / 2; n++) {
+      for (n = 1; n < nSamples / 2; n++)
+      {
         theta = 2.0 * n * step;
         sintheta = sin(theta);
         costheta = cos(theta);
@@ -378,7 +416,8 @@ void ScalarPSF::calculatePSFdxp() {
         sum_dzI0 += tmp;
         sum_dxI0 += expW * bessel_1 * sintheta;
       }
-      for (n = 1; n <= nSamples / 2; n++) {
+      for (n = 1; n <= nSamples / 2; n++)
+      {
         theta = (2.0 * n - 1.0) * step;
         sintheta = sin(theta);
         costheta = cos(theta);
@@ -439,17 +478,22 @@ void ScalarPSF::calculatePSFdxp() {
   double xi, yi, tmp2;
   int index = 0;
   int k, x, y;
-  if (p_.mode == 1) {
-    for (k = 0; k < nz_; k++) {
-      for (y = -xymax_; y <= xymax_; y++) {
-        for (x = -xymax_; x <= xymax_; x++) {
+  if (p_.mode == 1)
+  {
+    for (k = 0; k < nz_; k++)
+    {
+      for (y = -xymax_; y <= xymax_; y++)
+      {
+        for (x = -xymax_; x <= xymax_; x++)
+        {
 
           xi = (double)x - xp_;
           yi = (double)y - yp_;
           rx = sqrt(xi * xi + yi * yi);
           r0 = (int)rx;
 
-          if (r0 + 1 < rmax_) {
+          if (r0 + 1 < rmax_)
+          {
             dr = rx - r0;
             index = (x + xymax_) / p_.sf + ((y + xymax_) / p_.sf) * nx_ +
                     k * nx_ * nx_;
@@ -469,17 +513,23 @@ void ScalarPSF::calculatePSFdxp() {
         }
       }
     }
-  } else {
-    for (k = 0; k < nz_; k++) {
-      for (y = -xymax_; y <= xymax_; y++) {
-        for (x = -xymax_; x <= xymax_; x++) {
+  }
+  else
+  {
+    for (k = 0; k < nz_; k++)
+    {
+      for (y = -xymax_; y <= xymax_; y++)
+      {
+        for (x = -xymax_; x <= xymax_; x++)
+        {
 
           xi = (double)x - xp_;
           yi = (double)y - yp_;
           rx = sqrt(xi * xi + yi * yi);
           r0 = (int)rx;
 
-          if (r0 + 1 < rmax_) {
+          if (r0 + 1 < rmax_)
+          {
             dr = rx - r0;
             pixels_[index] +=
                 dr * integral_[k][r0 + 1] + (1.0 - dr) * integral_[k][r0];
@@ -502,7 +552,6 @@ void ScalarPSF::calculatePSFdxp() {
   delete[] integralDz;
   delete[] integralD;
 }
-
 
 // compiled with:
 // export DYLD_LIBRARY_PATH=/Applications/MATLAB_R2013a.app/bin/maci64 && g++

@@ -39,8 +39,9 @@
 
 using namespace std;
 
-
-template <typename T> std::vector<T> linspace(T a, T b, size_t N) {
+template <typename T>
+std::vector<T> linspace(T a, T b, size_t N)
+{
   T h = (b - a) / static_cast<T>(N - 1);
   std::vector<T> xs(N);
   typename std::vector<T>::iterator x;
@@ -50,8 +51,8 @@ template <typename T> std::vector<T> linspace(T a, T b, size_t N) {
   return xs;
 }
 
-
-class VectorialPSF {
+class VectorialPSF
+{
 
 public:
   VectorialPSF(const double xp[], const double z[], const int nz, const int nx,
@@ -91,7 +92,8 @@ private:
 const complex<double> VectorialPSF::i = complex<double>(0.0, 1.0);
 
 VectorialPSF::VectorialPSF(const double xp[], const double z[], const int nz,
-                           const int nx, const parameters p) {
+                           const int nx, const parameters p)
+{
   xp_ = xp[0];
   yp_ = xp[1];
   zp_ = xp[2];
@@ -104,7 +106,8 @@ VectorialPSF::VectorialPSF(const double xp[], const double z[], const int nz,
   xystep_ = p.dxy;
 
   xymax_ = ((nx_)*p.sf - 1) / 2; // always fine scale
-  if (!p_.mode) {
+  if (!p_.mode)
+  {
     nx_ *= p_.sf; // oversampling factor
   }
 
@@ -125,7 +128,8 @@ VectorialPSF::VectorialPSF(const double xp[], const double z[], const int nz,
   pixelsDzp_ = new double[N_];
 
   integral_ = new double *[nz_];
-  for (int k = 0; k < nz_; ++k) {
+  for (int k = 0; k < nz_; ++k)
+  {
     integral_[k] = new double[rmax_];
   }
   // initialize since loops add to these arrays
@@ -138,8 +142,10 @@ VectorialPSF::VectorialPSF(const double xp[], const double z[], const int nz,
   R = new double[npx_];
   int idx = 0;
   double xi, yi;
-  for (int y = -xymax_; y <= xymax_; ++y) {
-    for (int x = -xymax_; x <= xymax_; ++x) {
+  for (int y = -xymax_; y <= xymax_; ++y)
+  {
+    for (int x = -xymax_; x <= xymax_; ++x)
+    {
       xi = (double)x - xp_;
       yi = (double)y - yp_;
       R[idx] = sqrt(xi * xi + yi * yi);
@@ -148,9 +154,11 @@ VectorialPSF::VectorialPSF(const double xp[], const double z[], const int nz,
   }
 }
 
-VectorialPSF::~VectorialPSF() {
+VectorialPSF::~VectorialPSF()
+{
   delete[] R;
-  for (int k = 0; k < nz_; ++k) {
+  for (int k = 0; k < nz_; ++k)
+  {
     delete[] integral_[k];
   }
   delete[] integral_;
@@ -162,7 +170,8 @@ VectorialPSF::~VectorialPSF() {
 
 // Intensity PSF for an isotropically emitting point source (average of all
 // dipole orientations)
-void VectorialPSF::calculatePSF() {
+void VectorialPSF::calculatePSF()
+{
 
   double r;
   int n;
@@ -191,32 +200,40 @@ void VectorialPSF::calculatePSF() {
   complex<double> L_th[2];
   double cst;
 
-  for (int k = 0; k < nz_; k++) {
+  for (int k = 0; k < nz_; k++)
+  {
 
     L_theta(L_th, p_.alpha, p_, ci, z_[k], zp_);
     w_exp = abs(L_th[1]); // missing p.k0, multiply below
 
     cst = 0.975;
-    while (cst >= 0.9) {
+    while (cst >= 0.9)
+    {
       L_theta(L_th, cst * p_.alpha, p_, ci, z_[k], zp_);
-      if (abs(L_th[1]) > w_exp) {
+      if (abs(L_th[1]) > w_exp)
+      {
         w_exp = abs(L_th[1]);
       }
       cst -= 0.025;
     }
     w_exp *= p_.k0;
 
-    for (ri = 0; ri < rmax_; ++ri) {
+    for (ri = 0; ri < rmax_; ++ri)
+    {
 
       r = xystep_ / p_.sf * (double)(ri);
       constJ = p_.k0 * r * p_.ni; // = w_J;
 
-      if (w_exp > constJ) {
+      if (w_exp > constJ)
+      {
         nSamples = 4 * (int)(1.0 + p_.alpha * w_exp / PI);
-      } else {
+      }
+      else
+      {
         nSamples = 4 * (int)(1.0 + p_.alpha * constJ / PI);
       }
-      if (nSamples < 20) {
+      if (nSamples < 20)
+      {
         nSamples = 20;
       }
 
@@ -228,7 +245,8 @@ void VectorialPSF::calculatePSF() {
       sum_I1 = 0.0;
       sum_I2 = 0.0;
 
-      for (n = 1; n < nSamples / 2; n++) {
+      for (n = 1; n < nSamples / 2; n++)
+      {
         theta = 2.0 * n * step;
         sintheta = sin(theta);
         costheta = cos(theta);
@@ -246,9 +264,12 @@ void VectorialPSF::calculatePSF() {
         bessel_0 = 2.0 * J0(constJ * sintheta) * sintheta *
                    sqrtcostheta; // 2.0 factor : Simpson's rule
         bessel_1 = 2.0 * J1(constJ * sintheta) * sintheta * sqrtcostheta;
-        if (constJ != 0.0) {
+        if (constJ != 0.0)
+        {
           bessel_2 = 2.0 * bessel_1 / (constJ * sintheta) - bessel_0;
-        } else {
+        }
+        else
+        {
           bessel_2 = 0.0;
         }
         bessel_0 *= (ts1ts2 + tp1tp2 / p_.ns * nsroot);
@@ -264,7 +285,8 @@ void VectorialPSF::calculatePSF() {
         sum_I1 += expW * bessel_1;
         sum_I2 += expW * bessel_2;
       }
-      for (n = 1; n <= nSamples / 2; n++) {
+      for (n = 1; n <= nSamples / 2; n++)
+      {
         theta = (2.0 * n - 1) * step;
         sintheta = sin(theta);
         costheta = cos(theta);
@@ -282,9 +304,12 @@ void VectorialPSF::calculatePSF() {
         bessel_0 = 4.0 * J0(constJ * sintheta) * sintheta *
                    sqrtcostheta; // 4.0 factor : Simpson's rule
         bessel_1 = 4.0 * J1(constJ * sintheta) * sintheta * sqrtcostheta;
-        if (constJ != 0.0) {
+        if (constJ != 0.0)
+        {
           bessel_2 = 2.0 * bessel_1 / (constJ * sintheta) - bessel_0;
-        } else {
+        }
+        else
+        {
           bessel_2 = 0.0;
         }
         bessel_0 *= (ts1ts2 + tp1tp2 / p_.ns * nsroot);
@@ -315,9 +340,12 @@ void VectorialPSF::calculatePSF() {
 
       bessel_0 = J0(constJ * sintheta) * sintheta * sqrtcostheta;
       bessel_1 = J1(constJ * sintheta) * sintheta * sqrtcostheta;
-      if (constJ != 0.0) {
+      if (constJ != 0.0)
+      {
         bessel_2 = 2.0 * bessel_1 / (constJ * sintheta) - bessel_0;
-      } else {
+      }
+      else
+      {
         bessel_2 = 0.0;
       }
       bessel_0 *= (ts1ts2 + tp1tp2 / p_.ns * nsroot);
@@ -348,15 +376,20 @@ void VectorialPSF::calculatePSF() {
   int r0;
   double dr, rx, xi, yi;
   index = 0;
-  if (p_.mode == 1) {
-    for (int k = 0; k < nz_; ++k) {
-      for (y = -xymax_; y <= xymax_; y++) {
-        for (x = -xymax_; x <= xymax_; x++) {
+  if (p_.mode == 1)
+  {
+    for (int k = 0; k < nz_; ++k)
+    {
+      for (y = -xymax_; y <= xymax_; y++)
+      {
+        for (x = -xymax_; x <= xymax_; x++)
+        {
           xi = (double)x - xp_;
           yi = (double)y - yp_;
           rx = sqrt(xi * xi + yi * yi);
           r0 = (int)rx;
-          if (r0 + 1 < rmax_) {
+          if (r0 + 1 < rmax_)
+          {
             dr = rx - r0;
             index = (x + xymax_) / p_.sf + ((y + xymax_) / p_.sf) * nx_ +
                     k * nx_ * nx_;
@@ -366,15 +399,21 @@ void VectorialPSF::calculatePSF() {
         }
       }
     }
-  } else {
-    for (int k = 0; k < nz_; ++k) {
-      for (y = -xymax_; y <= xymax_; y++) {
-        for (x = -xymax_; x <= xymax_; x++) {
+  }
+  else
+  {
+    for (int k = 0; k < nz_; ++k)
+    {
+      for (y = -xymax_; y <= xymax_; y++)
+      {
+        for (x = -xymax_; x <= xymax_; x++)
+        {
           xi = (double)x - xp_;
           yi = (double)y - yp_;
           rx = sqrt(xi * xi + yi * yi);
           r0 = (int)rx;
-          if (r0 + 1 < rmax_) {
+          if (r0 + 1 < rmax_)
+          {
             dr = rx - r0;
             pixels_[index] +=
                 dr * integral_[k][r0 + 1] + (1.0 - dr) * integral_[k][r0];
@@ -388,7 +427,8 @@ void VectorialPSF::calculatePSF() {
 
 // Same PSF calculation as above, but including partial derivatives relative to
 // source pos. xp
-void VectorialPSF::calculatePSFdxp() {
+void VectorialPSF::calculatePSFdxp()
+{
 
   double r;
   int n;
@@ -418,7 +458,8 @@ void VectorialPSF::calculatePSFdxp() {
   double **integralDz;
   integralDx = new double *[nz_];
   integralDz = new double *[nz_];
-  for (int k = 0; k < nz_; ++k) {
+  for (int k = 0; k < nz_; ++k)
+  {
     integralDx[k] = new double[rmax_];
     integralDz[k] = new double[rmax_];
   }
@@ -432,32 +473,40 @@ void VectorialPSF::calculatePSFdxp() {
   complex<double> L_th[2];
   double cst;
 
-  for (int k = 0; k < nz_; ++k) {
+  for (int k = 0; k < nz_; ++k)
+  {
 
     L_theta(L_th, p_.alpha, p_, ci, z_[k], zp_);
     w_exp = abs(L_th[1]); // missing p.k0 !
 
     cst = 0.975;
-    while (cst >= 0.9) {
+    while (cst >= 0.9)
+    {
       L_theta(L_th, cst * p_.alpha, p_, ci, z_[k], zp_);
-      if (abs(L_th[1]) > w_exp) {
+      if (abs(L_th[1]) > w_exp)
+      {
         w_exp = abs(L_th[1]);
       }
       cst -= 0.025;
     }
     w_exp *= p_.k0;
 
-    for (ri = 0; ri < rmax_; ++ri) {
+    for (ri = 0; ri < rmax_; ++ri)
+    {
 
       r = xystep / p_.sf * (double)(ri);
       constJ = p_.k0 * r * p_.ni; // = w_J;
 
-      if (w_exp > constJ) {
+      if (w_exp > constJ)
+      {
         nSamples = 4 * (int)(1.0 + p_.alpha * w_exp / PI);
-      } else {
+      }
+      else
+      {
         nSamples = 4 * (int)(1.0 + p_.alpha * constJ / PI);
       }
-      if (nSamples < 20) {
+      if (nSamples < 20)
+      {
         nSamples = 20;
       }
       step = p_.alpha / (double)nSamples;
@@ -474,7 +523,8 @@ void VectorialPSF::calculatePSFdxp() {
       sum_dzI1 = 0.0;
       sum_dzI2 = 0.0;
 
-      for (n = 1; n < nSamples / 2; n++) {
+      for (n = 1; n < nSamples / 2; n++)
+      {
         theta = 2.0 * n * step;
         sintheta = sin(theta);
         costheta = cos(theta);
@@ -492,10 +542,13 @@ void VectorialPSF::calculatePSFdxp() {
         bessel_0 = 2.0 * J0(constJ * sintheta) * sintheta *
                    sqrtcostheta; // 2.0 factor : Simpson's rule
         bessel_1 = 2.0 * J1(constJ * sintheta) * sintheta * sqrtcostheta;
-        if (constJ != 0.0) {
+        if (constJ != 0.0)
+        {
           bessel_2 = 2.0 * bessel_1 / (constJ * sintheta) - bessel_0;
           bessel_3 = 4.0 * bessel_2 / (constJ * sintheta) - bessel_1;
-        } else {
+        }
+        else
+        {
           bessel_2 = 0.0;
           bessel_3 = 0.0;
         }
@@ -525,7 +578,8 @@ void VectorialPSF::calculatePSFdxp() {
         sum_dxI1 += expW * (bessel_0 - bessel_2) * t1 * sintheta;
         sum_dxI2 += expW * (bessel_1 - bessel_3) * t2 * sintheta;
       }
-      for (n = 1; n <= nSamples / 2; n++) {
+      for (n = 1; n <= nSamples / 2; n++)
+      {
         theta = (2.0 * n - 1) * step;
         sintheta = sin(theta);
         costheta = cos(theta);
@@ -543,10 +597,13 @@ void VectorialPSF::calculatePSFdxp() {
         bessel_0 = 4.0 * J0(constJ * sintheta) * sintheta *
                    sqrtcostheta; // 4.0 factor : Simpson's rule
         bessel_1 = 4.0 * J1(constJ * sintheta) * sintheta * sqrtcostheta;
-        if (constJ != 0.0) {
+        if (constJ != 0.0)
+        {
           bessel_2 = 2.0 * bessel_1 / (constJ * sintheta) - bessel_0;
           bessel_3 = 4.0 * bessel_2 / (constJ * sintheta) - bessel_1;
-        } else {
+        }
+        else
+        {
           bessel_2 = 0.0;
           bessel_3 = 0.0;
         }
@@ -590,10 +647,13 @@ void VectorialPSF::calculatePSFdxp() {
 
       bessel_0 = J0(constJ * sintheta) * sintheta * sqrtcostheta;
       bessel_1 = J1(constJ * sintheta) * sintheta * sqrtcostheta;
-      if (constJ != 0.0) {
+      if (constJ != 0.0)
+      {
         bessel_2 = 2.0 * bessel_1 / (constJ * sintheta) - bessel_0;
         bessel_3 = 4.0 * bessel_2 / (constJ * sintheta) - bessel_1;
-      } else {
+      }
+      else
+      {
         bessel_2 = 0.0;
         bessel_3 = 0.0;
       }
@@ -622,7 +682,8 @@ void VectorialPSF::calculatePSFdxp() {
       sum_dxI1 += expW * (bessel_0 - bessel_2) * t1 * sintheta;
       sum_dxI2 += expW * (bessel_1 - bessel_3) * t2 * sintheta;
 
-      if (ri > 0) {
+      if (ri > 0)
+      {
         integral_[k][ri] =
             8.0 * PI / 3.0 *
             (abs(sum_I0) * abs(sum_I0) + 2.0 * abs(sum_I1) * abs(sum_I1) +
@@ -638,7 +699,9 @@ void VectorialPSF::calculatePSFdxp() {
             real(conj(sum_dzI0) * sum_I0 + 2.0 * conj(sum_dzI1) * sum_I1 +
                  conj(sum_dzI2) * sum_I2) *
             iconst * iconst;
-      } else {
+      }
+      else
+      {
         integral_[k][0] =
             8.0 * PI / 3.0 * (abs(sum_I0) * abs(sum_I0)) * iconst * iconst;
         integralDx[k][0] = 0.0;
@@ -652,17 +715,22 @@ void VectorialPSF::calculatePSFdxp() {
   int r0;
   double dr, rx, xi, yi, xd, yd;
   index = 0;
-  if (p_.mode == 1) {
-    for (int k = 0; k < nz_; ++k) {
-      for (y = -xymax_; y <= xymax_; y++) {
-        for (x = -xymax_; x <= xymax_; x++) {
+  if (p_.mode == 1)
+  {
+    for (int k = 0; k < nz_; ++k)
+    {
+      for (y = -xymax_; y <= xymax_; y++)
+      {
+        for (x = -xymax_; x <= xymax_; x++)
+        {
           xi = (double)x - xp_;
           yi = (double)y - yp_;
           xd = xp_ - x * xystep / p_.sf;
           yd = yp_ - y * xystep / p_.sf;
           rx = sqrt(xi * xi + yi * yi);
           r0 = (int)rx;
-          if (r0 + 1 < rmax_) {
+          if (r0 + 1 < rmax_)
+          {
             dr = rx - r0;
             index = (x + xymax_) / p_.sf + ((y + xymax_) / p_.sf) * nx_ +
                     k * nx_ * nx_;
@@ -678,17 +746,23 @@ void VectorialPSF::calculatePSFdxp() {
         }
       }
     }
-  } else {
-    for (int k = 0; k < nz_; ++k) {
-      for (y = -xymax_; y <= xymax_; y++) {
-        for (x = -xymax_; x <= xymax_; x++) {
+  }
+  else
+  {
+    for (int k = 0; k < nz_; ++k)
+    {
+      for (y = -xymax_; y <= xymax_; y++)
+      {
+        for (x = -xymax_; x <= xymax_; x++)
+        {
           xi = (double)x - xp_;
           yi = (double)y - yp_;
           xd = xp_ - x * xystep_ / p_.sf;
           yd = yp_ - y * xystep_ / p_.sf;
           rx = sqrt(xi * xi + yi * yi);
           r0 = (int)rx;
-          if (r0 + 1 < rmax_) {
+          if (r0 + 1 < rmax_)
+          {
             dr = rx - r0;
             pixels_[index] +=
                 dr * integral_[k][r0 + 1] + (1.0 - dr) * integral_[k][r0];
@@ -705,7 +779,8 @@ void VectorialPSF::calculatePSFdxp() {
     }
   }
   // free dynamic structures
-  for (int k = 0; k < nz_; ++k) {
+  for (int k = 0; k < nz_; ++k)
+  {
     delete[] integralDx[k];
     delete[] integralDz[k];
   }

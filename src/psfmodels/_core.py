@@ -1,10 +1,7 @@
-try:
-    import _psfmodels as library
-except ImportError:
-    raise ImportError("could not import precompiled library for psfmodels")
-import warnings as _wrn
+import warnings
 
-import numpy as _np
+import _psfmodels
+import numpy as np
 
 _DEFAULT_PARAMS = {
     "NA": 1.4,  # numerical aperture
@@ -61,27 +58,25 @@ def normalize_params(mp):
         if key in _VALID_ARGS:
             out[key] = val
         else:
-            _wrn.warn(
-                (
-                    "parameter {} is not one of the recognized "
-                    "keywords and is being ignored"
-                ).format(key)
+            warnings.warn(
+                f"parameter {key} is not one of the recognized keywords "
+                "and is being ignored"
             )
 
     return {key: val for key, val in _mp.items() if key in _VALID_ARGS}
 
 
 def _validate_args(zv, dxy, pz):
-    """sanity checks for various arguments"""
+    """Sanity checks for various arguments."""
     if isinstance(zv, (float, int)):
-        zv = _np.array([zv])
+        zv = np.array([zv])
     elif isinstance(zv, (list, tuple)):
-        zv = _np.array(zv)
-    elif not isinstance(zv, _np.ndarray):
+        zv = np.array(zv)
+    elif not isinstance(zv, np.ndarray):
         raise ValueError("zd must be a scalar, iterable, or numpy array")
-    if not dxy > 0:
+    if dxy <= 0:
         raise ValueError("dxy must be greater than 0")
-    if not pz >= 0:
+    if pz < 0:
         raise ValueError("pz should be >= 0")
     return zv
 
@@ -144,16 +139,16 @@ def vectorial_psf(zv=0, nx=31, dxy=0.05, pz=0.0, wvl=0.6, params=None, normalize
     """Computes a vectorial model of the microscope point spread function."""
     zv = _validate_args(zv, dxy, pz)
     params = normalize_params(params)
-    _psf = library.vectorial_psf(zv.copy(), int(nx), pz, wvl=wvl, dxy=dxy, **params)
+    _psf = _psfmodels.vectorial_psf(zv.copy(), int(nx), pz, wvl=wvl, dxy=dxy, **params)
     if normalize:
-        _psf /= _np.max(_psf)
+        _psf /= np.max(_psf)
     return _psf
 
 
 def vectorial_psf_deriv(
     zv=0, nx=31, dxy=0.05, pz=0.0, wvl=0.6, params=None, normalize=True
 ):
-    """Computes a vectorial model of the microscope point spread function.
+    """Compute a vectorial model of the microscope point spread function.
 
     also returns derivatives in dx, dy, dz.
 
@@ -163,34 +158,34 @@ def vectorial_psf_deriv(
     """
     zv = _validate_args(zv, dxy, pz)
     params = normalize_params(params)
-    pixdxp = _np.zeros((len(zv), nx, nx))
-    pixdyp = _np.zeros((len(zv), nx, nx))
-    pixdzp = _np.zeros((len(zv), nx, nx))
-    _psf = library.vectorial_psf_deriv(
+    pixdxp = np.zeros((len(zv), nx, nx))
+    pixdyp = np.zeros((len(zv), nx, nx))
+    pixdzp = np.zeros((len(zv), nx, nx))
+    _psf = _psfmodels.vectorial_psf_deriv(
         pixdxp, pixdyp, pixdzp, zv.copy(), int(nx), pz, wvl=wvl, dxy=dxy, **params
     )
     if normalize:
-        _psf /= _np.max(_psf)
+        _psf /= np.max(_psf)
     return _psf, pixdxp, pixdyp, pixdzp
 
 
 def scalar_psf(zv=0, nx=31, dxy=0.05, pz=0, wvl=0.6, params=None, normalize=True):
-    """Computes the scalar PSF model described by Gibson and Lanni."""
+    """Compute the scalar PSF model described by Gibson and Lanni."""
     zv = _validate_args(zv, dxy, pz)
     params = normalize_params(params)
-    _psf = library.scalar_psf(zv.copy(), int(nx), pz, wvl=wvl, dxy=dxy, **params)
+    _psf = _psfmodels.scalar_psf(zv.copy(), int(nx), pz, wvl=wvl, dxy=dxy, **params)
     if normalize:
-        _psf /= _np.max(_psf)
+        _psf /= np.max(_psf)
     return _psf
 
 
 def _centered_zv(nz, dz, pz):
     lim = (nz - 1) * dz / 2
-    return _np.linspace(-lim + pz, lim + pz, nz)
+    return np.linspace(-lim + pz, lim + pz, nz)
 
 
 def vectorial_psf_centered(nz, dz=0.05, **kwargs):
-    """Computes a vectorial model of the microscope point spread function.
+    """Compute a vectorial model of the microscope point spread function.
 
     The point source is always in the center of the output volume."""
     zv = _centered_zv(nz, dz, kwargs.get("pz", 0))
@@ -198,7 +193,7 @@ def vectorial_psf_centered(nz, dz=0.05, **kwargs):
 
 
 def scalar_psf_centered(nz, dz=0.05, **kwargs):
-    """Computes the scalar PSF model described by Gibson and Lanni.
+    """Comput the scalar PSF model described by Gibson and Lanni.
 
     The point source is always in the center of the output volume."""
     zv = _centered_zv(nz, dz, kwargs.get("pz", 0))
@@ -212,7 +207,7 @@ scalar_psf_centered.__doc__ += _centerdocstring + _paramdocs  # type: ignore
 
 
 def vectorialXYZFocalScan(mp, dxy, xy_size, zv, normalize=True, pz=0.0, wvl=0.6, zd=0):
-    """Computes a vectorial model of the microscope point spread function.
+    """Compute a vectorial model of the microscope point spread function.
 
     This function is merely here as a convenience to mimic the MicroscPSF-Py API.
     """
@@ -220,7 +215,7 @@ def vectorialXYZFocalScan(mp, dxy, xy_size, zv, normalize=True, pz=0.0, wvl=0.6,
 
 
 def scalarXYZFocalScan(mp, dxy, xy_size, zv, normalize=True, pz=0.0, wvl=0.6, zd=0):
-    """Computes the scalar PSF model described by Gibson and Lanni.
+    """Compute the scalar PSF model described by Gibson and Lanni.
 
     This function is merely here as a convenience to mimic the MicroscPSF-Py API.
     """
@@ -278,7 +273,9 @@ def tot_psf(
     em_params=None,
     psf_func="vectorial",
 ):
-    """Simlulate a total system psf with orthogonal illumination & detection (e.g. SPIM)
+    """Simlulate a total system psf with orthogonal illumination & detection.
+
+    (e.g. SPIM)
 
     Args:
         nx (int, optional): XY size of output PSF in pixels, must be odd. Defaults to
@@ -356,22 +353,22 @@ def tot_psf(
         )
 
     lim = (nx - 1) * dxy / 2
-    emzvec = _np.linspace(-lim + x_offset, lim + x_offset, nx)
-    if _np.mod(z_offset / dz, 1) != 0:
-        z_offset = dz * _np.round(z_offset / dz)
-        _wrn.warn(
+    emzvec = np.linspace(-lim + x_offset, lim + x_offset, nx)
+    if np.mod(z_offset / dz, 1) != 0:
+        z_offset = dz * np.round(z_offset / dz)
+        warnings.warn(
             "Not Implemented: z_offset must be an even multiple of dz. "
             "Coercing z_offset to nearest dz multiple: %s" % z_offset
         )
-    _zoff = int(_np.ceil(z_offset / dz))
-    ex_nx = nz + 2 * _np.abs(_zoff)
+    _zoff = int(np.ceil(z_offset / dz))
+    ex_nx = nz + 2 * np.abs(_zoff)
     exzvec = _centered_zv(nz, dz, pz)
 
     ex_psf = f(_x_params, dz, ex_nx, emzvec, pz=0, wvl=ex_wvl).T.sum(0)
     ex_psf = ex_psf[:nz] if _zoff >= 0 else ex_psf[-nz:]
     em_psf = f(_m_params, dxy, nx, exzvec, pz=pz, wvl=em_wvl)
 
-    combined = ex_psf[:, :, _np.newaxis] * em_psf
+    combined = ex_psf[:, :, np.newaxis] * em_psf
     return (ex_psf, em_psf, combined)
 
 
