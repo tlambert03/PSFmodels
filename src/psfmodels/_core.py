@@ -2,6 +2,100 @@ import warnings
 
 import _psfmodels
 import numpy as np
+from typing_extensions import Literal
+
+
+# TODO: expand docs with references
+def make_psf(
+    zv: np.ndarray,
+    nx: int = 31,
+    *,
+    pz: float = 0.0,
+    ti0: float = 150.0,
+    ni0: float = 1.515,
+    ni: float = 1.515,
+    tg0: float = 170,
+    tg: float = 170,
+    ng0: float = 1.515,
+    ng: float = 1.515,
+    ns: float = 1.47,
+    wvl: float = 0.6,
+    NA: float = 1.4,
+    dxy: float = 0.05,
+    oversample_factor: int = 3,
+    normalize: bool = True,
+    model: Literal["vectorial", "scalar", "gaussian"] = "vectorial",
+):
+    """Compute microscope PSF.
+
+    Select the PSF model using the `model` keyword argument. Can be one of:
+        vectorial:  Vectorial PSF described by Aguet et al (2009).
+        scalar: Scalar PSF model described by Gibson and Lanni.
+        gaussian: Simple gaussian approximation.
+
+    Parameters
+    ----------
+    zv : np.ndarray
+        Vector of Z positions at which PSF is calculated (in microns, relative to
+        coverslip)
+    nx : int
+        XY size of output PSF in pixels, must be odd.
+    pz : float
+        point source z position above the coverslip in microns.
+    ti0 : float
+        working distance of the objective (microns)
+    ni0 : float
+        immersion medium refractive index, design value
+    ni : float
+        immersion medium refractive index, experimental value
+    tg0 : float
+        coverslip thickness, design value (microns)
+    tg : float
+        coverslip thickness, experimental value (microns)
+    ng0 : float
+        coverslip refractive index, design value
+    ng : float
+        coverslip refractive index, experimental value
+    ns : float
+        sample refractive index
+    wvl : float
+        emission wavelength (microns)
+    NA : float
+        numerical aperture
+    dxy : float
+        pixel size in sample space (microns)
+    oversample_factor : int, optional
+        oversampling factor to approximate pixel integration, by default 3
+    model : str
+        PSF model to use.  Must be one of 'vectorial', 'scalar', 'gaussian'.
+        By default 'vectorial'.
+
+    Returns
+    -------
+    psf : np.ndarray
+        The PSF array with dtype np.float64 and shape (len(zv), nx, nx)
+    """
+    # TODO: allow zv to be nz & dz?
+    # zv = _centered_zv(nz, dz, kwargs.get("pz", 0))
+
+    _args = set(_VALID_ARGS).difference({"zv", "nx", "dxy", "pz", "wvl"})
+    kwargs = {k: v for k, v in locals().items() if k in _args}
+    kwargs["sf"] = oversample_factor
+    kwargs["mode"] = 1 if oversample_factor else 0
+
+    if model == "vectorial":
+        f = vectorial_psf
+    elif model == "scalar":
+        f = scalar_psf
+    elif model == "gaussian":
+        raise NotImplementedError("Gaussian model not yet implemented")
+    else:
+        raise ValueError(f"Unrecognized psf model: {model!r}")
+
+    return f(zv=zv, nx=nx, dxy=dxy, pz=pz, wvl=wvl, params=kwargs, normalize=normalize)
+
+
+# --------------------------------------------------------------------------------
 
 _DEFAULT_PARAMS = {
     "NA": 1.4,  # numerical aperture
@@ -35,7 +129,7 @@ _VALID_ARGS = [
 ]
 
 
-def normalize_params(mp):
+def _normalize_params(mp):
     """Check and return valid microscope parameters dict, stripped of excess keys.
 
     Args:
@@ -135,11 +229,34 @@ _paramdocs = """
  """
 
 
+_DEFAULT_PARAMS = {
+    "NA": 1.4,  # numerical aperture
+    "ng0": 1.515,  # coverslip RI design value
+    "ng": 1.515,  # coverslip RI experimental value
+    "ni0": 1.515,  # immersion medium RI design value
+    "ni": 1.515,  # immersion medium RI experimental value
+    "ns": 1.47,  # specimen refractive index (RI)
+    "ti0": 150.0,  # microns, working distance (immersion medium thickness) design value
+    "tg": 170.0,  # microns, coverslip thickness experimental value
+    "tg0": 170.0,  # microns, coverslip thickness design value
+}
+
+
 def vectorial_psf(zv=0, nx=31, dxy=0.05, pz=0.0, wvl=0.6, params=None, normalize=True):
-    """Computes a vectorial model of the microscope point spread function."""
+    """Compute a vectorial model of the microscope point spread function."""
     zv = _validate_args(zv, dxy, pz)
-    params = normalize_params(params)
+    params = _normalize_params(params)
     _psf = _psfmodels.vectorial_psf(zv.copy(), int(nx), pz, wvl=wvl, dxy=dxy, **params)
+    if normalize:
+        _psf /= np.max(_psf)
+    return _psf
+
+
+def scalar_psf(zv=0, nx=31, dxy=0.05, pz=0, wvl=0.6, params=None, normalize=True):
+    """Compute the scalar PSF model described by Gibson and Lanni."""
+    zv = _validate_args(zv, dxy, pz)
+    params = _normalize_params(params)
+    _psf = _psfmodels.scalar_psf(zv.copy(), int(nx), pz, wvl=wvl, dxy=dxy, **params)
     if normalize:
         _psf /= np.max(_psf)
     return _psf
@@ -157,7 +274,7 @@ def vectorial_psf_deriv(
 
     """
     zv = _validate_args(zv, dxy, pz)
-    params = normalize_params(params)
+    params = _normalize_params(params)
     pixdxp = np.zeros((len(zv), nx, nx))
     pixdyp = np.zeros((len(zv), nx, nx))
     pixdzp = np.zeros((len(zv), nx, nx))
@@ -169,21 +286,6 @@ def vectorial_psf_deriv(
     return _psf, pixdxp, pixdyp, pixdzp
 
 
-def scalar_psf(zv=0, nx=31, dxy=0.05, pz=0, wvl=0.6, params=None, normalize=True):
-    """Compute the scalar PSF model described by Gibson and Lanni."""
-    zv = _validate_args(zv, dxy, pz)
-    params = normalize_params(params)
-    _psf = _psfmodels.scalar_psf(zv.copy(), int(nx), pz, wvl=wvl, dxy=dxy, **params)
-    if normalize:
-        _psf /= np.max(_psf)
-    return _psf
-
-
-def _centered_zv(nz, dz, pz):
-    lim = (nz - 1) * dz / 2
-    return np.linspace(-lim + pz, lim + pz, nz)
-
-
 def vectorial_psf_centered(nz, dz=0.05, **kwargs):
     """Compute a vectorial model of the microscope point spread function.
 
@@ -193,11 +295,16 @@ def vectorial_psf_centered(nz, dz=0.05, **kwargs):
 
 
 def scalar_psf_centered(nz, dz=0.05, **kwargs):
-    """Comput the scalar PSF model described by Gibson and Lanni.
+    """Compute the scalar PSF model described by Gibson and Lanni.
 
     The point source is always in the center of the output volume."""
     zv = _centered_zv(nz, dz, kwargs.get("pz", 0))
     return scalar_psf(zv, **kwargs)
+
+
+def _centered_zv(nz, dz, pz):
+    lim = (nz - 1) * dz / 2
+    return np.linspace(-lim + pz, lim + pz, nz)
 
 
 vectorial_psf.__doc__ += _docstring + _paramdocs  # type: ignore
@@ -380,6 +487,5 @@ __all__ = [
     "scalar_psf_centered",
     "vectorialXYZFocalScan",
     "scalarXYZFocalScan",
-    "normalize_params",
     "tot_psf",
 ]

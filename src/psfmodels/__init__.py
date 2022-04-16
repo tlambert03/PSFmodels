@@ -6,6 +6,7 @@ __author__ = "Talley Lambert"
 __email__ = "talley.lambert@gmail.com"
 
 from ._core import (
+    make_psf,
     scalar_psf,
     scalar_psf_centered,
     scalarXYZFocalScan,
@@ -16,6 +17,7 @@ from ._core import (
 )
 
 __all__ = [
+    "make_psf",
     "scalar_psf",
     "scalar_psf_centered",
     "scalarXYZFocalScan",
