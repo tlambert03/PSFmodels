@@ -1,4 +1,10 @@
-# PSFmodels-py
+# psfmodels
+
+[![PyPI](https://img.shields.io/pypi/v/psfmodels.svg?color=green)](https://pypi.org/project/psfmodels)
+[![Python Version](https://img.shields.io/pypi/pyversions/psfmodels.svg?color=green)](https://python.org)
+[![CI](https://github.com/tlambert03/psfmodels/actions/workflows/ci.yml/badge.svg)](https://github.com/tlambert03/psfmodels/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/tlambert03/psfmodels/branch/main/graph/badge.svg)](https://codecov.io/gh/tlambert03/psfmodels)
+
 
 Python bindings for scalar and vectorial models of the point spread function.
 
