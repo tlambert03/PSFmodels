@@ -3,11 +3,11 @@ import psfmodels as psfm
 import pytest
 
 
-@pytest.mark.parametrize("model", ["vectorial", "scalar"])
-def test_make_psf(model):
-    zvec = np.linspace(-1, 1, 5)
-    p = psfm.make_psf(zvec, nx=31, model=model)
-    assert p.shape == (5, 31, 31)
+@pytest.mark.parametrize("model", ["vectorial", "scalar", "gaussian"])
+@pytest.mark.parametrize("z", [np.linspace(-2, 2, 15), 15])
+def test_make_psf(model, z):
+    p = psfm.make_psf(z, nx=31, model=model)
+    assert p.shape == (15, 31, 31)
 
 
 def test_vectorial_psf():

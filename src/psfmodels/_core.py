@@ -1,27 +1,28 @@
 import warnings
+from typing import Sequence, Union
 
 import _psfmodels
 import numpy as np
 from typing_extensions import Literal
 
 
-# TODO: expand docs with references
 def make_psf(
-    zv: np.ndarray,
-    nx: int = 31,
+    z: Union[int, Sequence[float]] = 51,
+    nx: int = 51,
     *,
-    pz: float = 0.0,
-    ti0: float = 150.0,
-    ni0: float = 1.515,
-    ni: float = 1.515,
-    tg0: float = 170,
-    tg: float = 170,
-    ng0: float = 1.515,
-    ng: float = 1.515,
-    ns: float = 1.47,
-    wvl: float = 0.6,
-    NA: float = 1.4,
     dxy: float = 0.05,
+    dz: float = 0.05,
+    pz: float = 0.0,
+    NA: float = 1.4,
+    wvl: float = 0.6,
+    ns: float = 1.47,
+    ni: float = 1.515,
+    ni0: float = 1.515,
+    tg: float = 170,
+    tg0: float = 170,
+    ng: float = 1.515,
+    ng0: float = 1.515,
+    ti0: float = 150.0,
     oversample_factor: int = 3,
     normalize: bool = True,
     model: Literal["vectorial", "scalar", "gaussian"] = "vectorial",
@@ -30,42 +31,52 @@ def make_psf(
 
     Select the PSF model using the `model` keyword argument. Can be one of:
         vectorial:  Vectorial PSF described by Aguet et al (2009).
-        scalar: Scalar PSF model described by Gibson and Lanni.
-        gaussian: Simple gaussian approximation.
+        scalar:     Scalar PSF model described by Gibson and Lanni.
+        gaussian:   Simple gaussian approximation.
 
     Parameters
     ----------
-    zv : np.ndarray
-        Vector of Z positions at which PSF is calculated (in microns, relative to
-        coverslip)
+    z : Union[int, Sequence[float]]
+        If an integer, z is interepreted as the number of z planes to calculate, and
+        the point source always resides in the center of the z volume (at plane ~z//2).
+        If a sequence (list, tuple, np.array), z is interpreted as a vector of Z
+        positions at which the PSF is calculated (in microns, relative to
+        coverslip).
+        When an integer is provided, `dz` may be used to change the step size.
+        If a sequence is provided, `dz` is ignored, since the sequence already implies
+        absolute positions relative to the coverslip.
     nx : int
-        XY size of output PSF in pixels, must be odd.
-    pz : float
-        point source z position above the coverslip in microns.
-    ti0 : float
-        working distance of the objective (microns)
-    ni0 : float
-        immersion medium refractive index, design value
-    ni : float
-        immersion medium refractive index, experimental value
-    tg0 : float
-        coverslip thickness, design value (microns)
-    tg : float
-        coverslip thickness, experimental value (microns)
-    ng0 : float
-        coverslip refractive index, design value
-    ng : float
-        coverslip refractive index, experimental value
-    ns : float
-        sample refractive index
-    wvl : float
-        emission wavelength (microns)
-    NA : float
-        numerical aperture
+        XY size of output PSF in pixels, prefer odd numbers.
     dxy : float
         pixel size in sample space (microns)
+    dz : float
+        axial size in sample space (microns). Only used when `z` is an integer.
+    pz : float
+        point source z position above the coverslip, in microns.
+    NA : float
+        numerical aperture of the objective lens
+    wvl : float
+        emission wavelength (microns)
+    ns : float
+        sample refractive index
+    ni : float
+        immersion medium refractive index, experimental value
+    ni0 : float
+        immersion medium refractive index, design value
+    tg : float
+        coverslip thickness, experimental value (microns)
+    tg0 : float
+        coverslip thickness, design value (microns)
+    ng : float
+        coverslip refractive index, experimental value
+    ng0 : float
+        coverslip refractive index, design value
+    ti0 : float
+        working distance of the objective (microns)
     oversample_factor : int, optional
         oversampling factor to approximate pixel integration, by default 3
+    normalize : bool
+        Whether to normalize the max value to 1. By default, True.
     model : str
         PSF model to use.  Must be one of 'vectorial', 'scalar', 'gaussian'.
         By default 'vectorial'.
@@ -75,8 +86,12 @@ def make_psf(
     psf : np.ndarray
         The PSF array with dtype np.float64 and shape (len(zv), nx, nx)
     """
-    # TODO: allow zv to be nz & dz?
-    # zv = _centered_zv(nz, dz, kwargs.get("pz", 0))
+    if isinstance(z, (int, float)):
+        zv: np.ndarray = _centered_zv(z, dz, pz)
+    else:
+        if dz != 0.05:
+            warnings.warn("dz is ignored when providing a sequence for `z`.")
+        zv = np.asarray(z)
 
     _args = set(_VALID_ARGS).difference({"zv", "nx", "dxy", "pz", "wvl"})
     kwargs = {k: v for k, v in locals().items() if k in _args}
@@ -88,7 +103,7 @@ def make_psf(
     elif model == "scalar":
         f = scalar_psf
     elif model == "gaussian":
-        raise NotImplementedError("Gaussian model not yet implemented")
+        f = gaussian_psf
     else:
         raise ValueError(f"Unrecognized psf model: {model!r}")
 
@@ -262,6 +277,54 @@ def scalar_psf(zv=0, nx=31, dxy=0.05, pz=0, wvl=0.6, params=None, normalize=True
     return _psf
 
 
+def gaussian_psf(zv=0, nx=31, dxy=0.05, pz=0, wvl=0.6, params=None, normalize=True):
+    """Approximate 3D PSF as a gaussian.
+
+    Parameters derived from Zhang et al (2007). https://doi.org/10.1364/AO.46.001819
+    Using the paraxial approximation for NA < 0.7 and the Nonparaxial approximation
+    for NA >= 0.7.
+    """
+    from scipy.stats import multivariate_normal
+
+    if pz != 0:
+        warnings.warn("pz != 0 currently does nothing for the gaussian approximation.")
+
+    zv = _validate_args(zv, dxy, pz)
+    params = _normalize_params(params)
+
+    na = params["NA"]
+    nimm = params["ni"]
+    alpha = np.arcsin(na / nimm)
+    cosa = np.cos(alpha)
+    Kem = 2 * np.pi / wvl
+
+    if na < 0.7:
+        # paraxial
+        sigma_xy = np.sqrt(2) / (Kem * na)
+        sigma_z = (2 * np.sqrt(6) * nimm) / (Kem * na**2)
+
+    else:
+        # non-parax
+        sigma_xy = (4 - 7 * cosa**1.5 + 3 * cosa**3.5) / (7 * (1 - cosa**1.5))
+        sigma_xy = (1 / (nimm * Kem)) * sigma_xy**-0.5
+
+        d = 4 * cosa**5 - 25 * cosa**3.5 + 42 * cosa**2.5 - 25 * cosa**1.5 + 4
+        d = np.sqrt(6) * nimm * Kem * np.sqrt(d)
+        sigma_z = 5 * np.sqrt(7) * (1 - cosa**1.5) / d
+
+    _xycoords = _centered_zv(nx, dxy)
+    y, z, x = np.meshgrid(_xycoords, zv, _xycoords)
+    coords = np.column_stack([z.flat, y.flat, x.flat])
+
+    sigma = np.array([sigma_z, sigma_xy, sigma_xy])
+    _psf = multivariate_normal.pdf(coords, mean=[0, 0, 0], cov=np.diag(sigma**2))
+    _psf = _psf.reshape((len(zv), nx, nx))
+
+    if normalize:
+        _psf /= np.max(_psf)
+    return _psf
+
+
 def vectorial_psf_deriv(
     zv=0, nx=31, dxy=0.05, pz=0.0, wvl=0.6, params=None, normalize=True
 ):
@@ -302,7 +365,7 @@ def scalar_psf_centered(nz, dz=0.05, **kwargs):
     return scalar_psf(zv, **kwargs)
 
 
-def _centered_zv(nz, dz, pz):
+def _centered_zv(nz, dz, pz=0) -> np.ndarray:
     lim = (nz - 1) * dz / 2
     return np.linspace(-lim + pz, lim + pz, nz)
 
