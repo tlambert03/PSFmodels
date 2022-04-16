@@ -18,7 +18,8 @@ ignore = [
     "fig.png",
     "notebooks/*",
     "tests/*",
-    "tox.ini"
+    "tox.ini",
+    'src/psfmodels/_version.py',
 ]
 
 [tool.cibuildwheel]
