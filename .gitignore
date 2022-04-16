@@ -105,4 +105,4 @@ ENV/
 .vscode/
 *.DS_Store
 
-psfmodels/_version.py
+src/psfmodels/_version.py
