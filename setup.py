@@ -120,25 +120,6 @@ class CleanCommand(Command):
             shutil.rmtree(BUILD_TEMP)
 
 
-class DeployCommand(Command):
-    user_options = []
-    repository_url = "https://test.pypi.org/legacy/"
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        self.run_command("test")
-        self.run_command("bdist_wheel")
-        subprocess.check_call(
-            ["twine", "upload", "--repository-url", self.repository_url, "dist/*"]
-        )
-        self.run_command("clean")
-
-
 setup(
     name="psfmodels",
     version="0.2.0",
@@ -150,7 +131,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     ext_modules=[CMakeExtension("psfmodels")],
-    cmdclass=dict(build_ext=CMakeBuild, clean=CleanCommand, deploy=DeployCommand),
+    cmdclass=dict(build_ext=CMakeBuild, clean=CleanCommand),
     zip_safe=False,
     install_requires=["numpy"],
     packages=["psfmodels"],
