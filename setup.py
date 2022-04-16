@@ -1,16 +1,14 @@
-import os
-import re
-import sys
 import glob
-import shutil
+import os
 import platform
+import re
+import shutil
 import subprocess
-
-from setuptools import setup, Extension, Command
-from setuptools.command.build_ext import build_ext
+import sys
 from distutils.version import LooseVersion
 
-
+from setuptools import Command, Extension, setup
+from setuptools.command.build_ext import build_ext
 
 BUILD_TEMP = os.path.expanduser("~/Desktop/vecpsf_build")
 
@@ -32,9 +30,9 @@ class CMakeBuild(build_ext):
             ) from e
 
         if platform.system() == "Windows":
-            cmake_version = LooseVersion(
-                re.search(r"version\s*([\d.]+)", out.decode())[1]
-            )
+            m = re.search(r"version\s*([\d.]+)", out.decode())
+            assert m
+            cmake_version = LooseVersion(m[1])
             if cmake_version < "3.1.0":
                 raise RuntimeError("CMake >= 3.1.0 is required on Windows")
 
@@ -45,7 +43,7 @@ class CMakeBuild(build_ext):
 
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
         # dealing with crappy Dropbox
-        if ("(") in os.path.abspath(self.build_temp):
+        if ("(") in os.path.abspath(self.build_temp):  # type: ignore
             self.build_temp = BUILD_TEMP
             extdir = os.path.join(self.build_temp, os.path.basename(extdir))
 
@@ -59,7 +57,7 @@ class CMakeBuild(build_ext):
 
         if platform.system() == "Windows":
             cmake_args += [f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{cfg.upper()}={extdir}"]
-            if sys.maxsize > 2 ** 32:
+            if sys.maxsize > 2**32:
                 cmake_args += ["-A", "x64"]
             build_args += ["--", "/m"]
         else:
@@ -67,9 +65,9 @@ class CMakeBuild(build_ext):
             build_args += ["--", "-j2"]
 
         env = os.environ.copy()
-        env[
-            "CXXFLAGS"
-        ] = f'{env.get("CXXFLAGS", "")} -DVERSION_INFO=\\"{self.distribution.get_version()}\\"'
+        flg = env.get("CXXFLAGS", "")
+        e = f'{flg} -DVERSION_INFO=\\"{self.distribution.get_version()}\\"'
+        env["CXXFLAGS"] = e
 
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
@@ -85,7 +83,6 @@ class CleanCommand(Command):
     """Custom clean command to tidy up the project root."""
 
     CLEAN_FILES = ".eggs ./*.so ./build ./dist ./*.pyc ./*.tgz ./*.egg-info".split(" ")
-
 
     def initialize_options(self):
         pass

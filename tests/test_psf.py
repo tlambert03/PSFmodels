@@ -1,6 +1,8 @@
 import unittest
-import psfmodels as psfm
+
 import numpy as np
+
+import psfmodels as psfm
 
 
 class DeviceTest(unittest.TestCase):

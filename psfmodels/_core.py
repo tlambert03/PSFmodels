@@ -1,11 +1,10 @@
-
 try:
     import _psfmodels as library
 except ImportError:
     raise ImportError("could not import precompiled library for psfmodels")
-import numpy as _np
 import warnings as _wrn
 
+import numpy as _np
 
 _DEFAULT_PARAMS = {
     "NA": 1.4,  # numerical aperture
@@ -114,27 +113,27 @@ _centerdocstring = (
 )
 
 _paramdocs = """
-        nx (int, optional): XY size of output PSF in pixels, must be odd. Defaults to 31.
-        dxy (float, optional): XY Pixel size in sample space (microns). Defaults to 0.05.
-        pz (float, optional): Depth of point source relative to coverslip in microns.
+        nx (int, optional): XY size of output PSF in pixels, must be odd. Defaults to
+        31. dxy (float, optional): XY Pixel size in sample space (microns). Defaults to
+        0.05. pz (float, optional): Depth of point source relative to coverslip in
+        microns.
                               Defaults to 0.
-        wvl (float, optional): Emission wavelength in microns. Defaults to 0.6.
-        params (dict, optional): Microscope parameters dict. See optional keys below.
-        normalize (bool, optional): Normalize PSF peak to 1. Defaults to True.
+        wvl (float, optional): Emission wavelength in microns. Defaults to 0.6. params
+        (dict, optional): Microscope parameters dict. See optional keys below. normalize
+        (bool, optional): Normalize PSF peak to 1. Defaults to True.
 
         valid params (all floats unless stated, all distances in microns):
-            NA:  Numerical Aperture. Defaults to 1.4
-            ng0: Coverslip RI design value. Defaults to 1.515
-            ng:  Coverslip RI experimental value. Defaults to 1.515
-            ni0: Immersion medium RI design value. Defaults to 1.515
-            ni:  Immersion medium RI experimental value. Defaults to 1.515
-            ns:  Specimen refractive RI. Defaults to 1.47
-            ti0: Working distance (immersion medium thickness) design value.
+            NA:  Numerical Aperture. Defaults to 1.4 ng0: Coverslip RI design value.
+            Defaults to 1.515 ng:  Coverslip RI experimental value. Defaults to 1.515
+            ni0: Immersion medium RI design value. Defaults to 1.515 ni:  Immersion
+            medium RI experimental value. Defaults to 1.515 ns:  Specimen refractive RI.
+            Defaults to 1.47 ti0: Working distance (immersion medium thickness) design
+            value.
                  Defaults to 150
-            tg:  Coverslip thickness experimental value. Defaults to 170.
-            tg0: Coverslip thickness design value. Defaults to 170.
-            sf (int):  oversampling factor to approximate pixel integration. Defaults to 3
-            mode (int): if 0, returns oversampled PSF. Defaults to 1
+            tg:  Coverslip thickness experimental value. Defaults to 170. tg0: Coverslip
+            thickness design value. Defaults to 170. sf (int):  oversampling factor to
+            approximate pixel integration. Defaults to 3 mode (int): if 0, returns
+            oversampled PSF. Defaults to 1
 
     Returns:
         np.ndarray: The PSF volume.
@@ -206,10 +205,10 @@ def scalar_psf_centered(nz, dz=0.05, **kwargs):
     return scalar_psf(zv, **kwargs)
 
 
-vectorial_psf.__doc__ += _docstring + _paramdocs
-scalar_psf.__doc__ += _docstring + _paramdocs
-vectorial_psf_centered.__doc__ += _centerdocstring + _paramdocs
-scalar_psf_centered.__doc__ += _centerdocstring + _paramdocs
+vectorial_psf.__doc__ += _docstring + _paramdocs  # type: ignore
+scalar_psf.__doc__ += _docstring + _paramdocs  # type: ignore
+vectorial_psf_centered.__doc__ += _centerdocstring + _paramdocs  # type: ignore
+scalar_psf_centered.__doc__ += _centerdocstring + _paramdocs  # type: ignore
 
 
 def vectorialXYZFocalScan(mp, dxy, xy_size, zv, normalize=True, pz=0.0, wvl=0.6, zd=0):
@@ -253,15 +252,16 @@ _otherapidoc = """
                  Defaults to 150
             tg:  Coverslip thickness experimental value. Defaults to 170.
             tg0: Coverslip thickness design value. Defaults to 170.
-            sf (int):  oversampling factor to approximate pixel integration. Defaults to 3
+            sf (int):  oversampling factor to approximate pixel integration.
+                Defaults to 3
             mode (int): if 0, returns oversampled PSF. Defaults to 1
 
     Returns:
         np.ndarray: The PSF volume.
 """
 
-vectorialXYZFocalScan.__doc__ += _otherapidoc
-scalarXYZFocalScan.__doc__ += _otherapidoc
+vectorialXYZFocalScan.__doc__ += _otherapidoc  # type: ignore
+scalarXYZFocalScan.__doc__ += _otherapidoc  # type: ignore
 
 
 def tot_psf(
@@ -281,37 +281,38 @@ def tot_psf(
     """Simlulate a total system psf with orthogonal illumination & detection (e.g. SPIM)
 
     Args:
-        nx (int, optional): XY size of output PSF in pixels, must be odd. Defaults to 127.
-        nz (int): Z size of output PSF in pixels, must be odd. Defaults to 127.
-        dxy (float, optional): XY Pixel size in sample space (microns). Defaults to 0.05.
-        dz (float, optional): Z step size of PSF in sample space. Defaults to 0.05
-        pz (int, optional): Depth of point source relative to coverslip in microns.
+        nx (int, optional): XY size of output PSF in pixels, must be odd. Defaults to
+        127. nz (int): Z size of output PSF in pixels, must be odd. Defaults to 127. dxy
+        (float, optional): XY Pixel size in sample space (microns). Defaults to 0.05. dz
+        (float, optional): Z step size of PSF in sample space. Defaults to 0.05 pz (int,
+        optional): Depth of point source relative to coverslip in microns.
                             Defaults to 0.
         z_offset (int, optional): Defocus between the axial position of the excitation
             and the detection plane, with respect to the detection lens. Defaults to 0.
-        x_offset (int, optional): Mismatch between the focal point of the excitation beam
-            and the point source, along the propogation direction of the excitation beam.
-            Defaults to 0.
+        x_offset (int, optional): Mismatch between the focal point of the excitation
+        beam
+            and the point source, along the propogation direction of the excitation
+            beam. Defaults to 0.
         ex_wvl (float, optional): Emission wavelength in microns. Defaults to 0.488.
         em_wvl (float, optional): Emission wavelength in microns. Defaults to 0.525.
         ex_params ([type], optional): Excitation lens parameters dict. See keys below.
         em_params ([type], optional): Emission lens parameters dict. See keys below.
         psf_func (str, optional): The psf model to use.  Can be any of
             {'vectorial', 'scalar', or 'microscpsf'}.  Where 'microscpsf' uses the
-            `gLXYZFocalScan` function from MicroscPSF-Py (if installed).
-            Defaults to "vectorial".
+            `gLXYZFocalScan` function from MicroscPSF-Py (if installed). Defaults to
+            "vectorial".
 
         valid params (all floats unless stated, all distances in microns):
             NA:  Numerical Aperture. Defaults to 0.4 for excitation and 1.1 for emission
-            ni0: Immersion medium RI design value. Defaults to 1.33
-            ni:  Immersion medium RI experimental value. Defaults to 1.33
-            ns:  Specimen refractive RI. Defaults to 1.33
-            tg:  Coverslip thickness experimental value. Defaults to 0 (water immersion)
-            tg0: Coverslip thickness design value. Defaults to 0 (water immersion)
-            ti0: Working distance (immersion medium thickness) design value.
+            ni0: Immersion medium RI design value. Defaults to 1.33 ni:  Immersion
+            medium RI experimental value. Defaults to 1.33 ns:  Specimen refractive RI.
+            Defaults to 1.33 tg:  Coverslip thickness experimental value. Defaults to 0
+            (water immersion) tg0: Coverslip thickness design value. Defaults to 0
+            (water immersion) ti0: Working distance (immersion medium thickness) design
+            value.
                  Defaults to 150
-            ng0: Coverslip RI design value. Defaults to 1.515
-            ng:  Coverslip RI experimental value. Defaults to 1.515
+            ng0: Coverslip RI design value. Defaults to 1.515 ng:  Coverslip RI
+            experimental value. Defaults to 1.515
 
     Raises:
         ImportError: If `psf_func` == 'microscpsf' and MicroscPSF-Py cannot be imported
@@ -334,10 +335,12 @@ def tot_psf(
     if psf_func.lower().startswith("microsc"):
         try:
             import microscPSF.microscPSF as msPSF
-        except ImportError:
+        except ImportError as e:
             raise ImportError(
-                'Could not import MicroscPSF-Py.  Install with "pip install MicroscPSF-Py"'
-            )
+                "Could not import MicroscPSF-Py. "
+                'Install with "pip install MicroscPSF-Py"'
+            ) from e
+
         f = msPSF.gLXYZFocalScan
         _x_params["zd0"] = _x_params.get("zd0", 200.0 * 1.0e3)
         _x_params["M"] = _x_params.get("M", 100)

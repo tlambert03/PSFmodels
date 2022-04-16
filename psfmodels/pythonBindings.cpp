@@ -135,7 +135,7 @@ PYBIND11_MODULE(_psfmodels, m) {
 
   m.def("vectorial_psf", &vectorial_psf, R"pbdoc(
     Computes a vectorial microscope point spread function model.
-    
+
     The model is described in F. Aguet et al., Opt. Express 17(8), pp. 6829-6848, 2009
     For more information and implementation details, see F. Aguet, Ph.D Thesis, Swiss
     Federal Institute of Technology, Lausanne (EPFL), 2009
@@ -143,7 +143,7 @@ PYBIND11_MODULE(_psfmodels, m) {
     C++ code by Francois Aguet, 2009. Python bindings by Talley Lambert, 2019.
 
     Args:
-        zv (np.ndarray): Vector of Z positions at which PSF is calculated (in microns, relative to coverslip) 
+        zv (np.ndarray): Vector of Z positions at which PSF is calculated (in microns, relative to coverslip)
         nx (int): XY size of output PSF in pixels, must be odd.
         pz (float): point source z position above the coverslip in microns.
         ti0 (float):  working distance of the objective (microns)
@@ -180,7 +180,7 @@ PYBIND11_MODULE(_psfmodels, m) {
 
   m.def("scalar_psf", &scalar_psf, R"pbdoc(
     Computes the scalar PSF model described by Gibson and Lanni
-    
+
     The model is described in F. Aguet et al., Opt. Express 17(8), pp. 6829-6848, 2009
     For more information and implementation details, see F. Aguet, Ph.D Thesis, Swiss
     Federal Institute of Technology, Lausanne (EPFL), 2009
@@ -188,7 +188,7 @@ PYBIND11_MODULE(_psfmodels, m) {
     C++ code by Francois Aguet, 2009. Python bindings by Talley Lambert, 2019.
 
     Args:
-        zv (np.ndarray): Vector of Z positions at which PSF is calculated (in microns, relative to coverslip) 
+        zv (np.ndarray): Vector of Z positions at which PSF is calculated (in microns, relative to coverslip)
         nx (int): XY size of output PSF in pixels, must be odd.
         pz (float): point source z position above the coverslip in microns.
         ti0 (float):  working distance of the objective (microns)
