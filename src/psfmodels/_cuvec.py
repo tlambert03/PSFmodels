@@ -1,12 +1,15 @@
-# import cupy as xp
-# from cupyx.scipy.special import j0, j1
-# from cupyx.scipy.ndimage import map_coordinates
 from dataclasses import dataclass
 
 import numpy as np
-import numpy as xp
-from scipy.ndimage import map_coordinates
-from scipy.special import j0, j1
+
+try:
+    import cupy as xp
+    from cupyx.scipy.ndimage import map_coordinates
+    from cupyx.scipy.special import j0, j1
+except ImportError:
+    import numpy as xp
+    from scipy.ndimage import map_coordinates
+    from scipy.special import j0, j1
 
 
 @dataclass
@@ -18,12 +21,8 @@ class Objective:
     immersion_medium_ri_spec: float = 1.515  # immersion medium RI design value (ni0)
     specimen_ri: float = 1.47  # specimen refractive index (ns)
     working_distance: float = 150.0  # um, working distance, design value (ti0)
-    coverslip_thickness: float = (
-        170.0  # um, coverslip thickness experimental value (tg)
-    )
-    coverslip_thickness_spec: float = (
-        170.0  # um, coverslip thickness design value (tg0)
-    )
+    coverslip_thickness: float = 170.0  # um, coverslip thickness (tg)
+    coverslip_thickness_spec: float = 170.0  # um, coverslip thickness design (tg0)
 
     @property
     def NA(self):
@@ -64,11 +63,6 @@ class Objective:
     @property
     def half_angle(self):
         return np.arcsin(self.na / self.ni)
-
-
-def wave_num(wavelength: float):
-    # wavelength in microns
-    2 * np.pi / (wavelength * 1e-6)
 
 
 def _simp_like(arr):
@@ -134,8 +128,8 @@ def simpson(
     return xp.real(sum_I0**2 + 2.0 * sum_I1**2 + sum_I2**2)
 
 
-def vectorial_rz(zv, nx=51, pos=(0, 0, 0), dxy=0.04, wvl=0.6, params={}, sf=3):
-    p = Objective(**params)
+def vectorial_rz(zv, nx=51, pos=(0, 0, 0), dxy=0.04, wvl=0.6, params=None, sf=3):
+    p = Objective(**(params or {}))
 
     wave_num = 2 * np.pi / (wvl * 1e-6)
 
@@ -148,8 +142,8 @@ def vectorial_rz(zv, nx=51, pos=(0, 0, 0), dxy=0.04, wvl=0.6, params={}, sf=3):
     # position in pixels
     xpos *= sf / xystep_
     ypos *= sf / xystep_
-    rn = 1 + int(np.sqrt(xpos * xpos + ypos * ypos))
-    rmax = int(np.ceil(np.sqrt(2.0) * xymax) + rn + 1)  # +1 for interpolation, dx, dy
+    rn = 1 + int(xp.sqrt(xpos * xpos + ypos * ypos))
+    rmax = int(xp.ceil(np.sqrt(2.0) * xymax) + rn + 1)  # +1 for interpolation, dx, dy
     rvec = xp.arange(rmax) * xystep_ / sf
     constJ = wave_num * rvec * p.ni
 
@@ -214,7 +208,7 @@ def rz_to_xyz(rz, xyshape, sf=3, off=None):
 
 
 def vectorial_psf(
-    zv, nx=51, ny=None, pos=(0, 0, 0), dxy=0.04, wvl=0.6, params={}, sf=3
+    zv, nx=51, ny=None, pos=(0, 0, 0), dxy=0.04, wvl=0.6, params={}, sf=3, target="auto"
 ):
     zv = xp.asarray(zv * 1e-6)  # convert to meters
     ny = ny or nx
@@ -233,7 +227,3 @@ if __name__ == "__main__":
     print(psf.shape)
     print(t1 - t0)
     assert np.allclose(np.load("out.npy"), psf, atol=0.1)
-
-    # import napari
-    # napari.view_image(psf)
-    # napari.run()
