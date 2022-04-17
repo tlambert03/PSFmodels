@@ -11,4 +11,4 @@ def test_equality():
     b = pure.vectorial_psf(zv, nx=N, dxy=dx)
     # note, similarity gets worse as dx goes up...
     # hints at an interpolation difference
-    np.testing.assert_allclose(a, b, rtol=0.003)
+    np.testing.assert_allclose(a, b, rtol=0.005)

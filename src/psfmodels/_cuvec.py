@@ -186,13 +186,13 @@ def rz_to_xyz(rz, xyshape, sf=3, off=None):
     # Create XY grid of radius values.
     rmap = radius_map(xyshape, off) * sf
     nz = rz.shape[0]
-    out = np.zeros((nz, *xyshape))
+    out = xp.zeros((nz, *xyshape))
     for z in range(nz):
         o = map_coordinates(
             rz, xp.asarray([xp.ones(rmap.size) * z, rmap.ravel()]), order=1
         ).reshape(xyshape)
-        out[z] = o.get() if hasattr(o, "get") else o
-    return out
+        out[z] = o
+    return out.get() if hasattr(out, "get") else out
 
 
 # def rz_to_xyz(rz, xyshape, sf=3, off=None):
