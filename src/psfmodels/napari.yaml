@@ -1,0 +1,10 @@
+name: psfmodels
+contributions:
+  commands:
+    - id: psfmodels.make_psf
+      title: Generate 3D Point Spread Function
+      python_name: psfmodels._napari:make_psf
+  widgets:
+    - command: psfmodels.make_psf
+      display_name: PSF Generator
+      autogenerate: true
