@@ -82,23 +82,22 @@ def simpson(
     zp: float,
     wave_num: float,
 ):
+    # L_theta calculation
     sintheta = xp.sin(theta)
     costheta = xp.cos(theta)
     sqrtcostheta = xp.sqrt(costheta).astype("complex")
-    ni2sin2theta = (p.ni**2 * sintheta**2).astype("complex")
+    ni2sin2theta = p.ni**2 * sintheta**2
     nsroot = xp.sqrt(p.ns**2 - ni2sin2theta)
     ngroot = xp.sqrt(p.ng**2 - ni2sin2theta)
-    expW = xp.exp(
-        1j
-        * wave_num
-        * (
-            (ci - (zv[:, xp.newaxis, xp.newaxis] if zv.ndim else zv)) * p.ni * costheta
-            + zp * nsroot
-            + p.tg * ngroot
-            - p.tg0 * xp.sqrt(p.ng0**2 - ni2sin2theta)
-            - p.ti0 * xp.sqrt(p.ni0**2 - ni2sin2theta)
-        )
+    _z = zv[:, xp.newaxis, xp.newaxis] if zv.ndim else zv
+    L0 = (
+        p.ni * (ci - _z) * costheta
+        + zp * nsroot
+        + p.tg * ngroot
+        - p.tg0 * xp.sqrt(p.ng0**2 - ni2sin2theta)
+        - p.ti0 * xp.sqrt(p.ni0**2 - ni2sin2theta)
     )
+    expW = xp.exp(1j * wave_num * L0)
 
     simp = _simp_like(theta)
 
@@ -151,13 +150,13 @@ def vectorial_rz(zv, nx=51, pos=(0, 0, 0), dxy=0.04, wvl=0.6, params=None, sf=3)
     # constant component of OPD
     ci = zpos * (1 - p.ni / p.ns) + p.ni * (p.tg0 / p.ng0 + p.ti0 / p.ni0 - p.tg / p.ng)
 
-    nSamples = int(4 * (1.0 + p.half_angle * xp.max(constJ) / np.pi))
+    nSamples = 4 * int(1.0 + p.half_angle * xp.max(constJ) / np.pi)
     nSamples = np.maximum(nSamples, 60)
     ud = 3.0 * sf
 
-    theta = xp.arange(1, nSamples + 1) * p.half_angle / nSamples
-    simpson_integral = simpson(p, theta, constJ, zv, ci, zpos, wave_num)
     step = p.half_angle / nSamples
+    theta = xp.arange(1, nSamples + 1) * step
+    simpson_integral = simpson(p, theta, constJ, zv, ci, zpos, wave_num)
     return 8.0 * np.pi / 3.0 * simpson_integral * (step / ud) ** 2
 
     # except xp.cuda.memory.OutOfMemoryError:
@@ -208,12 +207,23 @@ def rz_to_xyz(rz, xyshape, sf=3, off=None):
 
 
 def vectorial_psf(
-    zv, nx=51, ny=None, pos=(0, 0, 0), dxy=0.04, wvl=0.6, params={}, sf=3, target="auto"
+    zv,
+    nx=31,
+    ny=None,
+    pos=(0, 0, 0),
+    dxy=0.05,
+    wvl=0.6,
+    params=None,
+    sf=3,
+    normalize=True,
 ):
     zv = xp.asarray(zv * 1e-6)  # convert to meters
     ny = ny or nx
     rz = vectorial_rz(zv, np.maximum(ny, nx), pos, dxy, wvl, params, sf)
-    return rz_to_xyz(rz, (ny, nx), sf, off=np.array(pos[:2]) / (dxy * 1e-6))
+    _psf = rz_to_xyz(rz, (ny, nx), sf, off=np.array(pos[:2]) / (dxy * 1e-6))
+    if normalize:
+        _psf /= xp.max(_psf)
+    return _psf
 
 
 if __name__ == "__main__":
