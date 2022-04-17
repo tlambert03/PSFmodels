@@ -172,6 +172,8 @@ def _normalize_params(mp):
                 "and is being ignored"
             )
 
+    if _mp["NA"] >= _mp["ni"]:
+        raise ValueError("NA must not be greater than immersion medium RI (ni).")
     return {key: val for key, val in _mp.items() if key in _VALID_ARGS}
 
 

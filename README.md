@@ -6,15 +6,20 @@ Version](https://img.shields.io/pypi/pyversions/psfmodels.svg?color=green)](http
 [![CI](https://github.com/tlambert03/psfmodels/actions/workflows/ci.yml/badge.svg)](https://github.com/tlambert03/psfmodels/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/tlambert03/psfmodels/branch/main/graph/badge.svg)](https://codecov.io/gh/tlambert03/psfmodels)
 
-
 Python bindings for scalar and vectorial models of the point spread function.
 
 Original C++ code and MATLAB MEX bindings Copyright &copy; 2006-2013, [Francois
 Aguet](http://www.francoisaguet.net/software.html), distributed under GPL-3.0
 license. Python bindings by Talley Lambert
 
-The model is described in Auget et al 2009<sup>1</sup>. For more information and
-implementation details, see Francois' Thesis<sup>2</sup>.
+This package contains three models:
+
+1. The vectorial model is described in Auget et al 2009<sup>1</sup>. For more
+information and implementation details, see Francois' Thesis<sup>2</sup>.
+2. A scalar model, based on Gibson & Lanni<sup>3</sup>.
+3. A gaussian approximation (both paraxial and non-paraxial), using paramters from Zhang et al (2007)<sup>4</sup>.
+
+<small>
 
 <sup>1</sup> [F. Aguet et al., (2009) Opt. Express 17(8), pp.
 6829-6848](https://doi.org/10.1364/OE.17.006829)
@@ -22,6 +27,13 @@ implementation details, see Francois' Thesis<sup>2</sup>.
 <sup>2</sup> [F. Aguet. (2009) Super-Resolution Fluorescence Microscopy Based on
 Physical Models. Swiss Federal Institute of Technology Lausanne, EPFL Thesis no.
 4418](http://bigwww.epfl.ch/publications/aguet0903.html)
+
+<sup>3</sup> [F. Gibson and F. Lanni (1992) J. Opt. Soc. Am. A, vol. 9, no. 1, pp. 154-166](https://opg.optica.org/josaa/abstract.cfm?uri=josaa-9-1-154)
+
+<sup>4</sup> [Zhang et al (2007). Appl Opt
+. 2007 Apr 1;46(10):1819-29.](https://doi.org/10.1364/AO.46.001819)
+
+</small>
 
 ### see also:
 
@@ -33,9 +45,6 @@ For a different (faster) scalar-based Gibson–Lanni PSF model, see the
 [ImageJ/Java](https://github.com/MicroscPSF/MicroscPSF-ImageJ)
 
 ## Install
-
-Prebuilt binaries available on pypi for OS X and Windows, sdist available for
-linux
 
 ```sh
 pip install psfmodels
@@ -120,7 +129,7 @@ differences between the scalar and vectorial approximations, particularly with
 higher NA lenses, non-ideal sample refractive index, and increasing spherical
 aberration with depth from the coverslip.
 
-For an interactive comparison, see the [examples.ipynb](examples.ipynb) Jupyter
+For an interactive comparison, see the [examples.ipynb](notebooks/examples.ipynb) Jupyter
 notebook.
 
 ## Lightsheet PSF utility function
@@ -128,5 +137,5 @@ notebook.
 The `psfmodels.tot_psf()` function provides a quick way to simulate the total
 system PSF (excitation x detection) as might be observed on a light sheet
 microscope (currently, only strictly orthogonal illumination and detection are
-supported).  See the [lightsheet.ipynb](lightsheet.ipynb) Jupyter notebook for
+supported).  See the [lightsheet.ipynb](notebooks/lightsheet.ipynb) Jupyter notebook for
 examples.
