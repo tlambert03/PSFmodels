@@ -226,6 +226,19 @@ def vectorial_psf(
     return _psf
 
 
+def _centered_zv(nz, dz, pz=0) -> np.ndarray:
+    lim = (nz - 1) * dz / 2
+    return np.linspace(-lim + pz, lim + pz, nz)
+
+
+def vectorial_psf_centered(nz, dz=0.05, **kwargs):
+    """Compute a vectorial model of the microscope point spread function.
+
+    The point source is always in the center of the output volume."""
+    zv = _centered_zv(nz, dz, kwargs.get("pz", 0))
+    return vectorial_psf(zv, **kwargs)
+
+
 if __name__ == "__main__":
 
     zv = np.linspace(-3, 3, 61)
