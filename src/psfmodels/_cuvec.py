@@ -7,9 +7,15 @@ try:
     from cupyx.scipy.ndimage import map_coordinates
     from cupyx.scipy.special import j0, j1
 except ImportError:
-    import numpy as xp
-    from scipy.ndimage import map_coordinates
-    from scipy.special import j0, j1
+    try:
+        import jax.numpy as xp
+        from jax.scipy.ndimage import map_coordinates
+        from ._jax_bessel import j0, j1
+
+    except ImportError:
+        import numpy as xp
+        from scipy.ndimage import map_coordinates
+        from scipy.special import j0, j1
 
 
 @dataclass
@@ -65,12 +71,31 @@ class Objective:
         return np.arcsin(self.na / self.ni)
 
 
-def _simp_like(arr):
-    simp = xp.empty_like(arr)
-    simp[::2] = 4
-    simp[1::2] = 2
-    simp[-1] = 1
-    return simp
+if xp.__name__ == "jax.numpy":
+
+    def _simp_like(arr):
+        simp = xp.empty_like(arr)
+
+        simp = simp.at[::2].set(4)
+        simp = simp.at[1::2].set(2)
+        simp = simp.at[-1].set(1)
+        return simp
+
+    def _array_assign(arr, mask, value):
+        return arr.at[mask].set(value)
+
+else:
+
+    def _simp_like(arr):
+        simp = xp.empty_like(arr)
+        simp[::2] = 4
+        simp[1::2] = 2
+        simp[-1] = 1
+        return simp
+
+    def _array_assign(arr, mask, value):
+        arr[mask] = value
+        return arr
 
 
 def simpson(
@@ -114,7 +139,8 @@ def simpson(
 
     with np.errstate(invalid="ignore"):
         bessel_2 = 2.0 * bessel_1 / (constJ[:, xp.newaxis] * sintheta) - bessel_0
-    bessel_2[constJ == 0.0] = 0
+
+    bessel_2 = _array_assign(bessel_2, constJ == 0.0, 0)
 
     bessel_0 *= ts1ts2 + tp1tp2 / p.ns * nsroot
     bessel_1 *= tp1tp2 * p.ni / p.ns * sintheta
@@ -187,23 +213,26 @@ def rz_to_xyz(rz, xyshape, sf=3, off=None):
     rmap = radius_map(xyshape, off) * sf
     nz = rz.shape[0]
     out = xp.zeros((nz, *xyshape))
+    out = []
     for z in range(nz):
         o = map_coordinates(
             rz, xp.asarray([xp.ones(rmap.size) * z, rmap.ravel()]), order=1
         ).reshape(xyshape)
-        out[z] = o
+        out.append(o)
+
+    out = xp.asarray(out)
     return out.get() if hasattr(out, "get") else out
 
 
-# def rz_to_xyz(rz, xyshape, sf=3, off=None):
-#     """Use interpolation to create a 3D XYZ PSF from a 2D ZR PSF."""
-#     # Create XY grid of radius values.
-#     rmap = radius_map(xyshape, off) * sf
-#     ny, nx = xyshape
-#     nz, nr = rz.shape
-#     ZZ, RR = xp.meshgrid(xp.arange(nz, dtype="float64"), rmap.ravel())
-#     o = map_coordinates(rz, xp.array([ZZ.ravel(), RR.ravel()]))
-#     return o.reshape((nx, ny, nz)).T
+def rz_to_xyz(rz, xyshape, sf=3, off=None):
+    """Use interpolation to create a 3D XYZ PSF from a 2D ZR PSF."""
+    # Create XY grid of radius values.
+    rmap = radius_map(xyshape, off) * sf
+    ny, nx = xyshape
+    nz, nr = rz.shape
+    ZZ, RR = xp.meshgrid(xp.arange(nz, dtype="float64"), rmap.ravel())
+    o = map_coordinates(rz, xp.array([ZZ.ravel(), RR.ravel()]), order=1)
+    return o.reshape((nx, ny, nz)).T
 
 
 def vectorial_psf(
@@ -240,7 +269,6 @@ def vectorial_psf_centered(nz, dz=0.05, **kwargs):
 
 
 if __name__ == "__main__":
-
     zv = np.linspace(-3, 3, 61)
     from time import perf_counter
 
