@@ -1,12 +1,31 @@
-from jax import jit
+"""Code from Benjamin Pope
 
+MIT License
+
+https://github.com/benjaminpope/sibylla/blob/209a1962e2cfd297c53fce7cc470dfb271bc4c6b/notebooks/bessel_test.ipynb
+"""
 import jax.numpy as jnp
+from jax import jit, config
+
+# this is *absolutely essential* for the jax bessel function to be numerically stable
+config.update("jax_enable_x64", True)
+
+__all__ = ["j0", "j1"]
 
 
+@jit
+def j1(x):
+    """Bessel function of order one - using the implementation from CEPHES."""
+    return jnp.sign(x) * jnp.where(
+        jnp.abs(x) < 5.0, _j1_small(jnp.abs(x)), _j1_large_c(jnp.abs(x))
+    )
 
-from jax.config import config
 
-config.update("jax_enable_x64", True)  # th
+@jit
+def j0(x):
+    """Implementation of J0 for all x in Jax."""
+    return jnp.where(jnp.abs(x) < 5.0, _j0_small(jnp.abs(x)), _j0_large(jnp.abs(x)))
+
 
 RP1 = jnp.array(
     [
@@ -29,7 +48,6 @@ RQ1 = jnp.array(
         5.32278620332680085395e18,
     ]
 )
-
 PP1 = jnp.array(
     [
         7.62125616208173112003e-4,
@@ -77,37 +95,6 @@ QQ1 = jnp.array(
         3.36093607810698293419e2,
     ]
 )
-
-YP1 = jnp.array(
-    [
-        1.26320474790178026440e9,
-        -6.47355876379160291031e11,
-        1.14509511541823727583e14,
-        -8.12770255501325109621e15,
-        2.02439475713594898196e17,
-        -7.78877196265950026825e17,
-    ]
-)
-YQ1 = jnp.array(
-    [
-        5.94301592346128195359e2,
-        2.35564092943068577943e5,
-        7.34811944459721705660e7,
-        1.87601316108706159478e10,
-        3.88231277496238566008e12,
-        6.20557727146953693363e14,
-        6.87141087355300489866e16,
-        3.97270608116560655612e18,
-    ]
-)
-
-Z1 = 1.46819706421238932572e1
-Z2 = 4.92184563216946036703e1
-PIO4 = 0.78539816339744830962  # pi/4
-THPIO4 = 2.35619449019234492885  # 3*pi/4
-SQ2OPI = 0.79788456080286535588  # sqrt(2/pi)
-
-
 PP0 = jnp.array(
     [
         7.96936729297347051624e-4,
@@ -130,7 +117,6 @@ PQ0 = jnp.array(
         1.00000000000000000218e0,
     ]
 )
-
 QP0 = jnp.array(
     [
         -1.13663838898469149931e-2,
@@ -155,34 +141,6 @@ QQ0 = jnp.array(
         2.42005740240291393179e2,
     ]
 )
-
-YP0 = jnp.array(
-    [
-        1.55924367855235737965e4,
-        -1.46639295903971606143e7,
-        5.43526477051876500413e9,
-        -9.82136065717911466409e11,
-        8.75906394395366999549e13,
-        -3.46628303384729719441e15,
-        4.42733268572569800351e16,
-        -1.84950800436986690637e16,
-    ]
-)
-YQ0 = jnp.array(
-    [
-        1.04128353664259848412e3,
-        6.26107330137134956842e5,
-        2.68919633393814121987e8,
-        8.64002487103935000337e10,
-        2.02979612750105546709e13,
-        3.17157752842975028269e15,
-        2.50596256172653059228e17,
-    ]
-)
-
-DR10 = 5.78318596294678452118e0
-DR20 = 3.04712623436620863991e1
-
 RP0 = jnp.array(
     [
         -4.79443220978201773821e9,
@@ -205,15 +163,23 @@ RQ0 = jnp.array(
     ]
 )
 
+Z1 = 1.46819706421238932572e1
+Z2 = 4.92184563216946036703e1
+PIO4 = 0.78539816339744830962  # pi/4
+THPIO4 = 2.35619449019234492885  # 3*pi/4
+SQ2OPI = 0.79788456080286535588  # sqrt(2/pi)
+DR10 = 5.78318596294678452118e0
+DR20 = 3.04712623436620863991e1
 
-def j1_small(x):
+
+def _j1_small(x):
     z = x * x
     w = jnp.polyval(RP1, z) / jnp.polyval(RQ1, z)
     w = w * x * (z - Z1) * (z - Z2)
     return w
 
 
-def j1_large_c(x):
+def _j1_large_c(x):
     w = 5.0 / x
     z = w * w
     p = jnp.polyval(PP1, z) / jnp.polyval(PQ1, z)
@@ -223,17 +189,7 @@ def j1_large_c(x):
     return p * SQ2OPI / jnp.sqrt(x)
 
 
-@jit
-def j1(x):
-    """
-    Bessel function of order one - using the implementation from CEPHES, translated to Jax.
-    """
-    return jnp.sign(x) * jnp.where(
-        jnp.abs(x) < 5.0, j1_small(jnp.abs(x)), j1_large_c(jnp.abs(x))
-    )
-
-
-def j0_small(x):
+def _j0_small(x):
     """
     Implementation of J0 for x < 5
     """
@@ -246,7 +202,7 @@ def j0_small(x):
     return jnp.where(x < 1e-5, 1 - z / 4.0, p)
 
 
-def j0_large(x):
+def _j0_large(x):
     """
     Implementation of J0 for x >= 5
     """
@@ -258,12 +214,3 @@ def j0_large(x):
     xn = x - PIO4
     p = p * jnp.cos(xn) - w * q * jnp.sin(xn)
     return p * SQ2OPI / jnp.sqrt(x)
-
-
-@jit
-def j0(x):
-    """
-    Implementation of J0 for all x in Jax
-    """
-
-    return jnp.where(jnp.abs(x) < 5.0, j0_small(jnp.abs(x)), j0_large(jnp.abs(x)))
