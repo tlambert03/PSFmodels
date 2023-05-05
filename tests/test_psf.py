@@ -37,3 +37,11 @@ def test_scalar_psf():
 def test_scalar_psf_centered():
     p = psfm.scalar_psf_centered(nx=31, nz=5)
     assert p.shape == (5, 31, 31)
+
+
+def test_confocal_psf():
+    zvec = np.linspace(-1, 1, 5)
+    p = psfm.confocal_psf(zvec, nx=31, pinhole_au=0.2)
+    assert p.shape == (5, 31, 31)
+    p = psfm.confocal_psf(zvec, nx=31, pinhole_au=3)
+    assert p.shape == (5, 31, 31)

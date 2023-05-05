@@ -3,8 +3,8 @@ from typing import Sequence, Union, cast
 
 import _psfmodels
 import numpy as np
-from typing_extensions import Literal
 from scipy.signal import convolve2d
+from typing_extensions import Literal
 
 
 def make_psf(
@@ -91,7 +91,9 @@ def make_psf(
         zv: np.ndarray = _centered_zv(z, dz, pz)
     else:
         if dz != 0.05:
-            warnings.warn("dz is ignored when providing a sequence for `z`.")
+            warnings.warn(
+                "dz is ignored when providing a sequence for `z`.", stacklevel=2
+            )
         zv = np.asarray(z)
 
     _args = set(_VALID_ARGS).difference({"zv", "nx", "dxy", "pz", "wvl"})
@@ -145,17 +147,23 @@ _VALID_ARGS = [
 ]
 
 
-def _normalize_params(mp):
+def _normalize_params(mp: dict):
     """Check and return valid microscope parameters dict, stripped of excess keys.
 
-    Args:
-        mp (dict): The microscope parameters dict
+    Parameters
+    ----------
+    mp : dict
+        Dictionary of microscope parameters
 
-    Raises:
-        ValueError: If one of the parameter values is invalid
+    Raises
+    ------
+    ValueError
+        If one of the parameters is invalid.
 
-    Returns:
-        dict: Valid parameters for use in vectorial_ or scalar_psf
+    Returns
+    -------
+    dict
+        Dictionary of valid microscope parameters.
     """
     _mp = _DEFAULT_PARAMS.copy()
     if mp is not None:
@@ -170,7 +178,8 @@ def _normalize_params(mp):
         else:
             warnings.warn(
                 f"parameter {key} is not one of the recognized keywords "
-                "and is being ignored"
+                "and is being ignored",
+                stacklevel=2,
             )
 
     if _mp["NA"] >= _mp["ni"]:
@@ -290,7 +299,10 @@ def gaussian_psf(zv=0, nx=31, dxy=0.05, pz=0, wvl=0.6, params=None, normalize=Tr
     from scipy.stats import multivariate_normal
 
     if pz != 0:
-        warnings.warn("pz != 0 currently does nothing for the gaussian approximation.")
+        warnings.warn(
+            "pz != 0 currently does nothing for the gaussian approximation.",
+            stacklevel=2,
+        )
 
     zv = _validate_args(zv, dxy, pz)
     params = _normalize_params(params)
@@ -335,7 +347,8 @@ def vectorial_psf_deriv(
 
     also returns derivatives in dx, dy, dz.
 
-    Returns:
+    Returns
+    -------
         4-tuple of np.ndarrays: (_psf, dxp, dyp, dzp)
 
     """
@@ -355,7 +368,8 @@ def vectorial_psf_deriv(
 def vectorial_psf_centered(nz, dz=0.05, **kwargs):
     """Compute a vectorial model of the microscope point spread function.
 
-    The point source is always in the center of the output volume."""
+    The point source is always in the center of the output volume.
+    """
     zv = _centered_zv(nz, dz, kwargs.get("pz", 0))
     return vectorial_psf(zv, **kwargs)
 
@@ -363,7 +377,8 @@ def vectorial_psf_centered(nz, dz=0.05, **kwargs):
 def scalar_psf_centered(nz, dz=0.05, **kwargs):
     """Compute the scalar PSF model described by Gibson and Lanni.
 
-    The point source is always in the center of the output volume."""
+    The point source is always in the center of the output volume.
+    """
     zv = _centered_zv(nz, dz, kwargs.get("pz", 0))
     return scalar_psf(zv, **kwargs)
 
@@ -450,48 +465,59 @@ def tot_psf(
 
     (e.g. SPIM)
 
-    Args:
-        nx (int, optional): XY size of output PSF in pixels, must be odd. Defaults to
-        127. nz (int): Z size of output PSF in pixels, must be odd. Defaults to 127. dxy
-        (float, optional): XY Pixel size in sample space (microns). Defaults to 0.05. dz
-        (float, optional): Z step size of PSF in sample space. Defaults to 0.05 pz (int,
-        optional): Depth of point source relative to coverslip in microns.
-                            Defaults to 0.
-        z_offset (int, optional): Defocus between the axial position of the excitation
-            and the detection plane, with respect to the detection lens. Defaults to 0.
-        x_offset (int, optional): Mismatch between the focal point of the excitation
-        beam
-            and the point source, along the propogation direction of the excitation
-            beam. Defaults to 0.
-        ex_wvl (float, optional): Emission wavelength in microns. Defaults to 0.488.
-        em_wvl (float, optional): Emission wavelength in microns. Defaults to 0.525.
-        ex_params ([type], optional): Excitation lens parameters dict. See keys below.
-        em_params ([type], optional): Emission lens parameters dict. See keys below.
-        psf_func (str, optional): The psf model to use.  Can be any of
-            {'vectorial', 'scalar', or 'microscpsf'}.  Where 'microscpsf' uses the
-            `gLXYZFocalScan` function from MicroscPSF-Py (if installed). Defaults to
-            "vectorial".
+    Parameters
+    ----------
+    nx : int, optional
+        XY size of output PSF in pixels, must be odd. Defaults to 127.
+    nz : int, optional
+        Z size of output PSF in pixels, must be odd. Defaults to 127.
+    dxy : float, optional
+        XY Pixel size in sample space (microns). Defaults to 0.05.
+    dz : float, optional
+        Z step size of PSF in sample space. Defaults to 0.05
+    pz : int, optional
+        Depth of point source relative to coverslip in microns. Defaults to 0.
+    z_offset : int, optional
+        Defocus between the axial position of the excitation and the detection plane,
+        with respect to the detection lens. Defaults to 0.
+    x_offset : int, optional
+        Mismatch between the focal point of the excitation beam and the point source,
+        along the propogation direction of the excitation beam. Defaults to 0.
+    ex_wvl : float, optional
+        Emission wavelength in microns. Defaults to 0.488.
+    em_wvl : float, optional
+        Emission wavelength in microns. Defaults to 0.525.
+    ex_params : dict, optional
+        Microscope parameters dict for excitation. See optional keys below.
+    em_params : dict, optional
+        Microscope parameters dict for emission. See optional keys below.
+    psf_func : str, optional
+        The psf model to use.  Can be any of
+        {'vectorial', 'scalar', or 'microscpsf'}.  Where 'microscpsf' uses the
+        `gLXYZFocalScan` function from MicroscPSF-Py (if installed). Defaults to
+        "vectorial".
 
-        valid params (all floats unless stated, all distances in microns):
-            NA:  Numerical Aperture. Defaults to 0.4 for excitation and 1.1 for emission
-            ni0: Immersion medium RI design value. Defaults to 1.33 ni:  Immersion
-            medium RI experimental value. Defaults to 1.33 ns:  Specimen refractive RI.
-            Defaults to 1.33 tg:  Coverslip thickness experimental value. Defaults to 0
-            (water immersion) tg0: Coverslip thickness design value. Defaults to 0
-            (water immersion) ti0: Working distance (immersion medium thickness) design
-            value.
-                 Defaults to 150
-            ng0: Coverslip RI design value. Defaults to 1.515 ng:  Coverslip RI
-            experimental value. Defaults to 1.515
+    valid params (all floats unless stated, all distances in microns):
+        NA:  Numerical Aperture. Defaults to 0.4 for excitation and 1.1 for emission
+        ni0: Immersion medium RI design value. Defaults to 1.33 ni:  Immersion
+        medium RI experimental value. Defaults to 1.33 ns:  Specimen refractive RI.
+        Defaults to 1.33 tg:  Coverslip thickness experimental value. Defaults to 0
+        (water immersion) tg0: Coverslip thickness design value. Defaults to 0
+        (water immersion) ti0: Working distance (immersion medium thickness) design
+        value.
+                Defaults to 150
+        ng0: Coverslip RI design value. Defaults to 1.515 ng:  Coverslip RI
+        experimental value. Defaults to 1.515
 
-    Raises:
+    Raises
+    ------
         ImportError: If `psf_func` == 'microscpsf' and MicroscPSF-Py cannot be imported
         ValueError: If `psf_func` is not one of {'vectorial', 'scalar', or 'microscpsf'}
 
-    Returns:
+    Returns
+    -------
         3-tuple of np.ndarrays:  ex_psf, em_psf, total_system_psf
     """
-
     _x_params = _DEFAULT_PARAMS.copy()
     _x_params.update({"ni0": 1.33, "ni": 1.33, "ns": 1.33, "tg": 0, "tg0": 0})
     _x_params["NA"] = 0.4
@@ -531,7 +557,8 @@ def tot_psf(
         z_offset = dz * np.round(z_offset / dz)
         warnings.warn(
             "Not Implemented: z_offset must be an even multiple of dz. "
-            "Coercing z_offset to nearest dz multiple: %s" % z_offset
+            "Coercing z_offset to nearest dz multiple: %s" % z_offset,
+            stacklevel=2,
         )
     _zoff = int(np.ceil(z_offset / dz))
     ex_nx = nz + 2 * np.abs(_zoff)
@@ -569,27 +596,27 @@ def confocal_psf(
     model: Literal["vectorial", "scalar", "gaussian"] = "vectorial",
     pinhole_irrelevance_threshold: float = 50,
 ):
-    kwargs = dict(
-        z=z,
-        nx=nx,
-        dxy=dxy,
-        dz=dz,
-        pz=pz,
-        NA=NA,
-        ex_wvl=ex_wvl,
-        em_wvl=em_wvl,
-        ns=ns,
-        ni=ni,
-        ni0=ni0,
-        tg=tg,
-        tg0=tg0,
-        ng=ng,
-        ng0=ng0,
-        ti0=ti0,
-        oversample_factor=oversample_factor,
-        normalize=normalize,
-        model=model,
-    )
+    kwargs = {
+        "z": z,
+        "nx": nx,
+        "dxy": dxy,
+        "dz": dz,
+        "pz": pz,
+        "NA": NA,
+        "ex_wvl": ex_wvl,
+        "em_wvl": em_wvl,
+        "ns": ns,
+        "ni": ni,
+        "ni0": ni0,
+        "tg": tg,
+        "tg0": tg0,
+        "ng": ng,
+        "ng0": ng0,
+        "ti0": ti0,
+        "oversample_factor": oversample_factor,
+        "normalize": normalize,
+        "model": model,
+    }
     _ex_wvl = cast(float, kwargs.pop("ex_wvl"))
     _em_wvl = cast(float, kwargs.pop("em_wvl"))
     ex_psf = make_psf(wvl=_ex_wvl, **kwargs)  # type: ignore
@@ -608,7 +635,6 @@ def confocal_psf(
     return ex_psf * em_psf
 
 
-
 def _top_hat(nx: int, radius: float):
     """Return a top hat function of size (nx, nx) and radius `radius`.
 
@@ -619,7 +645,6 @@ def _top_hat(nx: int, radius: float):
     xx, yy = np.meshgrid(x, x)
     r = np.sqrt(xx**2 + yy**2)
     return (r <= radius).astype(int)
-
 
 
 __all__ = [

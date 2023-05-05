@@ -1,12 +1,6 @@
 [build-system]
-requires = [
-    "setuptools",
-    "wheel",
-    "setuptools-scm",
-    "pybind11>=2.8.0",
-]
+requires = ["setuptools", "wheel", "setuptools-scm", "pybind11>=2.8.0"]
 build-backend = "setuptools.build_meta"
-
 
 [tool.setuptools_scm]
 write_to = "src/psfmodels/_version.py"
@@ -18,9 +12,64 @@ ignore = [
     "fig.png",
     "notebooks/*",
     "tests/*",
-    "tox.ini",
     'src/psfmodels/_version.py',
 ]
+
+[tool.ruff]
+line-length = 88
+target-version = "py37"
+# https://beta.ruff.rs/docs/rules/
+select = [
+    "E",    # style errors
+    "W",    # style warnings
+    "F",    # flakes
+    "D",    # pydocstyle
+    "I",    # isort
+    "UP",   # pyupgrade
+    "C",    # flake8-comprehensions
+    "B",    # flake8-bugbear
+    "A001", # flake8-builtins
+    "RUF",  # ruff-specific rules
+]
+# I do this to get numpy-style docstrings AND retain
+# D417 (Missing argument descriptions in the docstring)
+# otherwise, see:
+# https://beta.ruff.rs/docs/faq/#does-ruff-support-numpy-or-google-style-docstrings
+# https://github.com/charliermarsh/ruff/issues/2606
+ignore = [
+    "D100", # Missing docstring in public module
+    "D107", # Missing docstring in __init__
+    "D203", # 1 blank line required before class docstring
+    "D212", # Multi-line docstring summary should start at the first line
+    "D213", # Multi-line docstring summary should start at the second line
+    "D401", # First line should be in imperative mood
+    "D413", # Missing blank line after last section
+    "D416", # Section name should end with a colon
+]
+
+[tool.ruff.per-file-ignores]
+"tests/*.py" = ["D"]
+"setup.py" = ["D"]
+
+# https://mypy.readthedocs.io/en/stable/config_file.html
+[tool.mypy]
+files = "src/**/"
+# strict = true
+disallow_any_generics = false
+disallow_subclassing_any = false
+show_error_codes = true
+pretty = true
+
+# # module specific overrides
+# [[tool.mypy.overrides]]
+# module = ["numpy.*",]
+# ignore_errors = true
+
+# https://docs.pytest.org/en/6.2.x/customize.html
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = ["tests"]
+filterwarnings = ["error"]
 
 [tool.cibuildwheel]
 # Skip 32-bit builds & PyPy wheels on all platforms
@@ -31,3 +80,16 @@ test-skip = "*-musllinux*"
 
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "arm64"]
+
+# https://coverage.readthedocs.io/en/6.4/config.html
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "@overload",
+    "except ImportError",
+    "\\.\\.\\.",
+    "raise NotImplementedError()",
+]
+[tool.coverage.run]
+source = ["src"]
