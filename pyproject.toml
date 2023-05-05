@@ -12,7 +12,6 @@ ignore = [
     "fig.png",
     "notebooks/*",
     "tests/*",
-    "tox.ini",
     'src/psfmodels/_version.py',
 ]
 
