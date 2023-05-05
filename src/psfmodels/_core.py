@@ -1,9 +1,10 @@
 import warnings
-from typing import Sequence, Union
+from typing import Sequence, Union, cast
 
 import _psfmodels
 import numpy as np
 from typing_extensions import Literal
+from scipy.signal import convolve2d
 
 
 def make_psf(
@@ -542,6 +543,83 @@ def tot_psf(
 
     combined = ex_psf[:, :, np.newaxis] * em_psf
     return (ex_psf, em_psf, combined)
+
+
+def confocal_psf(
+    z: Union[int, Sequence[float]] = 51,
+    nx: int = 51,
+    *,
+    pinhole_au: float = 1.0,
+    dxy: float = 0.05,
+    dz: float = 0.05,
+    pz: float = 0.0,
+    NA: float = 1.4,
+    ex_wvl: float = 0.6,
+    em_wvl: float = 0.6,
+    ns: float = 1.47,
+    ni: float = 1.515,
+    ni0: float = 1.515,
+    tg: float = 170,
+    tg0: float = 170,
+    ng: float = 1.515,
+    ng0: float = 1.515,
+    ti0: float = 150.0,
+    oversample_factor: int = 3,
+    normalize: bool = True,
+    model: Literal["vectorial", "scalar", "gaussian"] = "vectorial",
+    pinhole_irrelevance_threshold: float = 50,
+):
+    kwargs = dict(
+        z=z,
+        nx=nx,
+        dxy=dxy,
+        dz=dz,
+        pz=pz,
+        NA=NA,
+        ex_wvl=ex_wvl,
+        em_wvl=em_wvl,
+        ns=ns,
+        ni=ni,
+        ni0=ni0,
+        tg=tg,
+        tg0=tg0,
+        ng=ng,
+        ng0=ng0,
+        ti0=ti0,
+        oversample_factor=oversample_factor,
+        normalize=normalize,
+        model=model,
+    )
+    _ex_wvl = cast(float, kwargs.pop("ex_wvl"))
+    _em_wvl = cast(float, kwargs.pop("em_wvl"))
+    ex_psf = make_psf(wvl=_ex_wvl, **kwargs)  # type: ignore
+
+    if pinhole_au >= pinhole_irrelevance_threshold:
+        return ex_psf
+
+    em_psf = make_psf(wvl=_em_wvl, **kwargs)  # type: ignore
+
+    pinhole_size = pinhole_au * 0.61 * _em_wvl / NA
+    pinhole = _top_hat(nx, pinhole_size / dxy)
+
+    # convolve em_psf with pinhole, only in XY
+    em_psf = np.array([convolve2d(p, pinhole, mode="same") for p in em_psf])
+
+    return ex_psf * em_psf
+
+
+
+def _top_hat(nx: int, radius: float):
+    """Return a top hat function of size (nx, nx) and radius `radius`.
+
+    radius is in units of pixels. Everything inside of the radius is 1, everything
+    outside is 0.
+    """
+    x = np.arange(nx) - nx // 2
+    xx, yy = np.meshgrid(x, x)
+    r = np.sqrt(xx**2 + yy**2)
+    return (r <= radius).astype(int)
+
 
 
 __all__ = [
