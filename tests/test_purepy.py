@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 import psfmodels as psfm
 from psfmodels import _cuvec as pure
 
