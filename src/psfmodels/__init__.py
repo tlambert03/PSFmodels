@@ -8,6 +8,7 @@ __author__ = "Talley Lambert"
 __email__ = "talley.lambert@gmail.com"
 
 from ._core import (
+    confocal_psf,
     make_psf,
     scalar_psf,
     scalar_psf_centered,
@@ -20,6 +21,7 @@ from ._core import (
 )
 
 __all__ = [
+    "confocal_psf",
     "make_psf",
     "scalar_psf",
     "scalar_psf_centered",
