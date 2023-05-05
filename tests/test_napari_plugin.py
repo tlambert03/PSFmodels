@@ -2,6 +2,11 @@ import platform
 
 import pytest
 
+try:
+    import qtpy  # noqa
+except ImportError:
+    pytest.skip("qtpy not installed", allow_module_level=True)
+
 
 @pytest.mark.skipif(platform.system() == "Linux", reason="annoying on ubuntu CI")
 def test_napari_widget(monkeypatch):
