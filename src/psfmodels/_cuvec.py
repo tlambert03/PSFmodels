@@ -10,6 +10,7 @@ except ImportError:
     try:
         import jax.numpy as xp
         from jax.scipy.ndimage import map_coordinates
+
         from ._jax_bessel import j0, j1
 
     except ImportError:
@@ -208,7 +209,6 @@ def radius_map(shape, off=None):
 
 def rz_to_xyz(rz, xyshape, sf=3, off=None):
     """Use interpolation to create a 3D XYZ PSF from a 2D ZR PSF."""
-
     # Create XY grid of radius values.
     rmap = radius_map(xyshape, off) * sf
     nz = rz.shape[0]
@@ -224,15 +224,15 @@ def rz_to_xyz(rz, xyshape, sf=3, off=None):
     return out.get() if hasattr(out, "get") else out
 
 
-def rz_to_xyz(rz, xyshape, sf=3, off=None):
-    """Use interpolation to create a 3D XYZ PSF from a 2D ZR PSF."""
-    # Create XY grid of radius values.
-    rmap = radius_map(xyshape, off) * sf
-    ny, nx = xyshape
-    nz, nr = rz.shape
-    ZZ, RR = xp.meshgrid(xp.arange(nz, dtype="float64"), rmap.ravel())
-    o = map_coordinates(rz, xp.array([ZZ.ravel(), RR.ravel()]), order=1)
-    return o.reshape((nx, ny, nz)).T
+# def rz_to_xyz(rz, xyshape, sf=3, off=None):
+#     """Use interpolation to create a 3D XYZ PSF from a 2D ZR PSF."""
+#     # Create XY grid of radius values.
+#     rmap = radius_map(xyshape, off) * sf
+#     ny, nx = xyshape
+#     nz, nr = rz.shape
+#     ZZ, RR = xp.meshgrid(xp.arange(nz, dtype="float64"), rmap.ravel())
+#     o = map_coordinates(rz, xp.array([ZZ.ravel(), RR.ravel()]), order=1)
+#     return o.reshape((nx, ny, nz)).T
 
 
 def vectorial_psf(
@@ -263,7 +263,8 @@ def _centered_zv(nz, dz, pz=0) -> np.ndarray:
 def vectorial_psf_centered(nz, dz=0.05, **kwargs):
     """Compute a vectorial model of the microscope point spread function.
 
-    The point source is always in the center of the output volume."""
+    The point source is always in the center of the output volume.
+    """
     zv = _centered_zv(nz, dz, kwargs.get("pz", 0))
     return vectorial_psf(zv, **kwargs)
 

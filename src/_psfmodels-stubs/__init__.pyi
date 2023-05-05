@@ -1,10 +1,11 @@
 """Scalar and Vectorial PSF Models."""
 import numpy
+import numpy.typing as npt
 
 __all__ = ["scalar_psf", "vectorial_psf", "vectorial_psf_deriv"]
 
-def scalar_psf(  # noqa: E302
-    zv: numpy.ndarray[numpy.float64],
+def scalar_psf(
+    zv: npt.NDArray[numpy.float64],
     nx: int,
     pz: float,
     ti0: float,
@@ -20,7 +21,7 @@ def scalar_psf(  # noqa: E302
     dxy: float,
     sf: int = 3,
     mode: int = 1,
-) -> numpy.ndarray[numpy.float64]:
+) -> npt.NDArray[numpy.float64]:
     """Compute scalar PSF model described by Gibson and Lanni.
 
     The model is described in F. Aguet et al., Opt. Express 17(8), pp. 6829-6848, 2009
@@ -67,12 +68,12 @@ def scalar_psf(  # noqa: E302
 
     Returns
     -------
-    numpy.ndarray[numpy.float64]
+    npt.NDArray[numpy.float64]
         PSF with type np.float64 and shape (len(zv), nx, nx)
     """
 
-def vectorial_psf(  # noqa: E302
-    zv: numpy.ndarray[numpy.float64],
+def vectorial_psf(
+    zv: npt.NDArray[numpy.float64],
     nx: int,
     pz: float,
     ti0: float,
@@ -88,7 +89,7 @@ def vectorial_psf(  # noqa: E302
     dxy: float,
     sf: int = 3,
     mode: int = 1,
-) -> numpy.ndarray[numpy.float64]:
+) -> npt.NDArray[numpy.float64]:
     """Compute vectorial microscope point spread function model.
 
     The model is described in F. Aguet et al., Opt. Express 17(8), pp. 6829-6848, 2009
@@ -135,15 +136,15 @@ def vectorial_psf(  # noqa: E302
 
     Returns
     -------
-    numpy.ndarray[numpy.float64]
+    npt.NDArray[numpy.float64]
         PSF with type np.float64 and shape (len(zv), nx, nx)
     """
 
-def vectorial_psf_deriv(  # noqa: E302
-    pixdxp: numpy.ndarray[numpy.float64],
-    pixdyp: numpy.ndarray[numpy.float64],
-    pixdzp: numpy.ndarray[numpy.float64],
-    zv: numpy.ndarray[numpy.float64],
+def vectorial_psf_deriv(
+    pixdxp: npt.NDArray[numpy.float64],
+    pixdyp: npt.NDArray[numpy.float64],
+    pixdzp: npt.NDArray[numpy.float64],
+    zv: npt.NDArray[numpy.float64],
     nx: int,
     pz: float,
     ti0: float,
@@ -159,11 +160,17 @@ def vectorial_psf_deriv(  # noqa: E302
     dxy: float,
     sf: int = 3,
     mode: int = 1,
-) -> numpy.ndarray[numpy.float64]:
+) -> npt.NDArray[numpy.float64]:
     """Compute vectorial point spread function model, and return derivatives.
 
     Parameters
     ----------
+    pixdxp : npt.NDArray[numpy.float64]
+        Derivative of pixel x position with respect to z position
+    pixdyp : npt.NDArray[numpy.float64]
+        Derivative of pixel y position with respect to z position
+    pixdzp : npt.NDArray[numpy.float64]
+        Derivative of pixel z position with respect to z position
     zv : np.ndarray
         Vector of Z positions at which PSF is calculated (in microns, relative to
         coverslip)

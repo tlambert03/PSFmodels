@@ -1,11 +1,11 @@
-"""Code from Benjamin Pope
+"""Code from Benjamin Pope.
 
 MIT License
 
 https://github.com/benjaminpope/sibylla/blob/209a1962e2cfd297c53fce7cc470dfb271bc4c6b/notebooks/bessel_test.ipynb
 """
 import jax.numpy as jnp
-from jax import jit, config
+from jax import config, jit
 
 # this is *absolutely essential* for the jax bessel function to be numerically stable
 config.update("jax_enable_x64", True)
@@ -190,9 +190,7 @@ def _j1_large_c(x):
 
 
 def _j0_small(x):
-    """
-    Implementation of J0 for x < 5
-    """
+    """Implementation of J0 for x < 5."""
     z = x * x
     # if x < 1.0e-5:
     #     return 1.0 - z/4.0
@@ -203,10 +201,7 @@ def _j0_small(x):
 
 
 def _j0_large(x):
-    """
-    Implementation of J0 for x >= 5
-    """
-
+    """Implementation of J0 for x >= 5."""
     w = 5.0 / x
     q = 25.0 / (x * x)
     p = jnp.polyval(PP0, q) / jnp.polyval(PQ0, q)

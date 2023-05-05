@@ -41,7 +41,7 @@ def make_psf(
     ng: Annotated[float, {**dRI, "label": "CS RI"}] = 1.515,
     ng0: Annotated[float, {**dRI, "label": "CS RI (spec)"}] = 1.515,
 ) -> "napari.types.ImageData":
-    """Generate 3D microscope PSF
+    """Generate 3D microscope PSF.
 
     Select from one of the following PSF models:
         vectorial:  Vectorial PSF (Aguet et al, 2009)
