@@ -1,32 +1,19 @@
+import numpy
 import numpy as xp
+import scipy.special as ss
 
-if xp.__name__ == "jax.numpy":
-    from psfmodels._jax_bessel import j0, j1
 
-    def _simp_like(arr):
-        simp = xp.empty_like(arr)
+def _simp_like(arr):
+    simp = xp.empty_like(arr)
+    simp[::2] = 4
+    simp[1::2] = 2
+    simp[-1] = 1
+    return simp
 
-        simp = simp.at[::2].set(4)
-        simp = simp.at[1::2].set(2)
-        simp = simp.at[-1].set(1)
-        return simp
 
-    def _array_assign(arr, mask, value):
-        return arr.at[mask].set(value)
-
-else:
-    from scipy.special import j0, j1
-
-    def _simp_like(arr):
-        simp = xp.empty_like(arr)
-        simp[::2] = 4
-        simp[1::2] = 2
-        simp[-1] = 1
-        return simp
-
-    def _array_assign(arr, mask, value):
-        arr[mask] = value
-        return arr
+def _array_assign(arr, mask, value):
+    arr[mask] = value
+    return arr
 
 
 def radial_psf_aguet2009(
@@ -64,8 +51,9 @@ def radial_psf_aguet2009(
     ci = pz * (1 - ni / ns) + ni * (tg0 / ng0 + ti0 / ni0 - tg / ng)
 
     half_angle = xp.arcsin(na / ni)
-    nSamples = 4 * int(1.0 + half_angle * xp.max(constJ) / xp.pi)
+    nSamples = 4 * (1.0 + half_angle * xp.max(constJ) / xp.pi).astype(int)
     nSamples = xp.maximum(nSamples, 60)
+    nSamples = 60
 
     step = half_angle / nSamples
     theta = xp.arange(1, nSamples + 1) * step
@@ -116,13 +104,13 @@ def _simpson(
     ts1ts2 /= (ni * costheta + ngroot) * (ngroot + nsroot)
 
     # 2.0 factor: Simpson's rule
-    bessel_0 = simp * j0(constJ[:, xp.newaxis] * sintheta) * sintheta * sqrtcostheta
-    bessel_1 = simp * j1(constJ[:, xp.newaxis] * sintheta) * sintheta * sqrtcostheta
+    bessel_0 = simp * ss.j0(constJ[:, xp.newaxis] * sintheta) * sintheta * sqrtcostheta
+    bessel_1 = simp * ss.j1(constJ[:, xp.newaxis] * sintheta) * sintheta * sqrtcostheta
 
-    with xp.errstate(invalid="ignore"):
+    with numpy.errstate(invalid="ignore"):
         bessel_2 = 2.0 * bessel_1 / (constJ[:, xp.newaxis] * sintheta) - bessel_0
 
-    bessel_2 = _array_assign(bessel_2, constJ == 0.0, 0)
+    bessel_2 = xp.where((constJ == 0.0)[:, None], 0, bessel_2)
 
     bessel_0 *= ts1ts2 + tp1tp2 / ns * nsroot
     bessel_1 *= tp1tp2 * ni / ns * sintheta
