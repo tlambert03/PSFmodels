@@ -1,7 +1,12 @@
-import numpy as xp
-from scipy.special import j0, j1
+from __future__ import annotations
 
-from psfmodels._jax_bessel import j0, j1
+from typing import TYPE_CHECKING
+
+import numpy as xp
+import scipy.special as ss
+
+if TYPE_CHECKING:
+    import numpy.typing as npt
 
 
 def radial_coords(dxy: float = 0.05, nxy: int = 64):
@@ -25,8 +30,8 @@ def radial_coords(dxy: float = 0.05, nxy: int = 64):
 
 
 def radial_psf_li2017(
-    r: xp.ndarray | None = None,
-    z: xp.ndarray | None = None,
+    r: npt.ArrayLike | None = None,
+    z: npt.ArrayLike | None = None,
     na: float = 1.4,
     wavelength: float = 0.6,
     *,
@@ -129,7 +134,7 @@ def radial_psf_li2017(
     # Define the basis of Bessel functions
     # Shape is (number of basis functions by number of rho samples)
     _q = scaling.reshape(-1, 1) * rho
-    J = j0(_q)
+    J = ss.j0(_q)
 
     # Compute the approximation to the sampled pupil phase by finding the least squares
     # solution to the complex coefficients of the Fourier-Bessel expansion.
@@ -143,7 +148,10 @@ def radial_psf_li2017(
     # See equation 5 in Li, Xue, and Blu
     scaled_rho = scaling * max_rho
     _b_rho = b * max_rho
-    R = j1(scaled_rho) * j0(_b_rho) * scaled_rho - j0(scaled_rho) * j1(_b_rho) * _b_rho
+    R = (
+        ss.j1(scaled_rho) * ss.j0(_b_rho) * scaled_rho
+        - ss.j0(scaled_rho) * ss.j1(_b_rho) * _b_rho
+    )
     R = R / (scaling * scaling - b * b)
 
     # The transpose places the axial direction along the first dimension of the array
