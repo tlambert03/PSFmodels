@@ -134,7 +134,7 @@ def radial_psf_li2017(
     # Define the basis of Bessel functions
     # Shape is (number of basis functions by number of rho samples)
     _q = scaling.reshape(-1, 1) * rho
-    J = ss.j0(_q)
+    J = xp.asarray(ss.j0(_q), dtype=phase.dtype)  # cast only needed for torch
 
     # Compute the approximation to the sampled pupil phase by finding the least squares
     # solution to the complex coefficients of the Fourier-Bessel expansion.
@@ -155,4 +155,4 @@ def radial_psf_li2017(
     R = R / (scaling * scaling - b * b)
 
     # The transpose places the axial direction along the first dimension of the array
-    return (xp.abs(R.dot(C)) ** 2).T
+    return (xp.abs(xp.asarray(R, dtype=C.dtype) @ C) ** 2).T

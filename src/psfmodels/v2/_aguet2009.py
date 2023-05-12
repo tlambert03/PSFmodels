@@ -11,11 +11,6 @@ def _simp_like(arr):
     return simp
 
 
-def _array_assign(arr, mask, value):
-    arr[mask] = value
-    return arr
-
-
 def radial_psf_aguet2009(
     r: xp.ndarray | None = None,
     z: xp.ndarray | None = None,
@@ -50,9 +45,9 @@ def radial_psf_aguet2009(
     # constant component of OPD
     ci = pz * (1 - ni / ns) + ni * (tg0 / ng0 + ti0 / ni0 - tg / ng)
 
-    half_angle = xp.arcsin(na / ni)
-    nSamples = 4 * (1.0 + half_angle * xp.max(constJ) / xp.pi).astype(int)
-    nSamples = xp.maximum(nSamples, 60)
+    half_angle = xp.arcsin(xp.asarray([na / ni]))  # array cast is for torch
+    nSamples = xp.asarray(4 * (1.0 + half_angle * xp.max(constJ) / xp.pi), dtype=int)
+    nSamples = xp.maximum(nSamples, xp.asarray([60]))
     nSamples = 60
 
     step = half_angle / nSamples
@@ -82,11 +77,11 @@ def _simpson(
     # L_theta calculation
     sintheta = xp.sin(theta)
     costheta = xp.cos(theta)
-    sqrtcostheta = xp.sqrt(costheta).astype("complex")
+    sqrtcostheta = xp.asarray(xp.sqrt(costheta), dtype=xp.complex128)
     ni2sin2theta = ni**2 * sintheta**2
     nsroot = xp.sqrt(ns**2 - ni2sin2theta)
     ngroot = xp.sqrt(ng**2 - ni2sin2theta)
-    _z = zv[:, xp.newaxis, xp.newaxis] if zv.ndim else zv
+    _z = zv[:, None, None] if zv.ndim else zv
     L0 = (
         ni * (ci - _z) * costheta
         + zp * nsroot
@@ -96,19 +91,19 @@ def _simpson(
     )
     expW = xp.exp(1j * wave_num * L0)
 
-    simp = _simp_like(theta)
+    simp = xp.asarray(_simp_like(theta))
 
-    ts1ts2 = (4.0 * ni * costheta * ngroot).astype("complex")
-    tp1tp2 = ts1ts2.copy()
+    ts1ts2 = xp.asarray(4.0 * ni * costheta * ngroot, dtype=xp.complex128)
+    tp1tp2 = ts1ts2.clone() if hasattr(ts1ts2, "clone") else ts1ts2.copy()  # for torch
     tp1tp2 /= (ng * costheta + ni / ng * ngroot) * (ns / ng * ngroot + ng / ns * nsroot)
     ts1ts2 /= (ni * costheta + ngroot) * (ngroot + nsroot)
 
     # 2.0 factor: Simpson's rule
-    bessel_0 = simp * ss.j0(constJ[:, xp.newaxis] * sintheta) * sintheta * sqrtcostheta
-    bessel_1 = simp * ss.j1(constJ[:, xp.newaxis] * sintheta) * sintheta * sqrtcostheta
+    bessel_0 = simp * ss.j0(constJ[:, None] * sintheta) * sintheta * sqrtcostheta
+    bessel_1 = simp * ss.j1(constJ[:, None] * sintheta) * sintheta * sqrtcostheta
 
     with numpy.errstate(invalid="ignore"):
-        bessel_2 = 2.0 * bessel_1 / (constJ[:, xp.newaxis] * sintheta) - bessel_0
+        bessel_2 = 2.0 * bessel_1 / (constJ[:, None] * sintheta) - bessel_0
 
     bessel_2 = xp.where((constJ == 0.0)[:, None], 0, bessel_2)
 
