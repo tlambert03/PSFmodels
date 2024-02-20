@@ -36,7 +36,9 @@ jobs:
         run: pytest -v --color=yes --cov=psfmodels --cov-report=xml
 
       - name: Coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   build:
     name: Build wheels on ${{ matrix.os }}
